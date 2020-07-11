@@ -1,0 +1,5 @@
+{
+  extends: ['@borgar/eslint-config'],
+  env: { node: true },
+  globals: { Set: true }
+}

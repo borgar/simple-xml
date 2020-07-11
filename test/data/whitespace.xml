@@ -1,0 +1,4 @@
+<node>
+  <a xml:space="preserve"> <b> <c> c </c> b </b> </a>
+  <a xml:space="default"> <b> <c> c </c> b </b> </a>
+</node>
