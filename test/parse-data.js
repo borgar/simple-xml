@@ -43,8 +43,8 @@ test('refs.xml', t => {
   const fileName = 'test/data/refs.xml';
   const expected = [
     'node',
-    { enc: '< < & " \' \f «' },
-    '\n\tpcdata < < & " \' \f «\n\t&unknown; %entity;\n'
+    { enc: '< > & " \' \f «' },
+    '\n\tpcdata < > & " \' \f «\n\t&unknown; %entity;\n'
   ];
   const src = fs.readFileSync(fileName, 'utf8');
   const dom = xml.parse(src);
@@ -73,10 +73,10 @@ test('latintest.xml', t => {
         [ 'NAME_2', 'Jörg' ] ],
       [ 'ENTRIES',
         [ 'ENTRY',
-          [ 'ARTICLE', '<Test<' ],
+          [ 'ARTICLE', '<Test>' ],
           [ 'ENTRY_NO', '10' ] ],
         [ 'ENTRY',
-          [ 'ARTICLE', '<Test 2<' ],
+          [ 'ARTICLE', '<Test 2>' ],
           [ 'ENTRY_NO', '20' ] ] ],
       [ 'FOOTER',
         [ 'TEXT', 'This is a text.' ] ] ]
@@ -151,7 +151,7 @@ test('utftest_utf8.xml', t => {
   [ "Русский",
     { "название": "name",
       "ценность": "value" },
-    "<имеет<" ],
+    "<имеет>" ],
   [ "汉语",
     { "名字": "name",
       "价值": "value" },
@@ -266,7 +266,7 @@ test('utftest_utf8_bom.xml', t => {
   [ "Русский",
     { "название": "name",
       "ценность": "value" },
-    "<имеет<" ],
+    "<имеет>" ],
   [ "汉语",
     { "名字": "name",
       "价值": "value" },
@@ -380,7 +380,7 @@ test('utftest_utf8_clean.xml', t => {
   [ "Русский",
     { "название": "name",
       "ценность": "value" },
-    "<имеет<" ],
+    "<имеет>" ],
   [ "汉语",
     { "名字": "name",
       "价值": "value" },
@@ -494,7 +494,7 @@ test('utftest_utf8_nodecl.xml', t => {
   [ "Русский",
     { "название": "name",
       "ценность": "value" },
-    "<имеет<" ],
+    "<имеет>" ],
   [ "汉语",
     { "名字": "name",
       "价值": "value" },
