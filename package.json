@@ -21,8 +21,8 @@
   "author": "Borgar Þorsteinsson <borgar@borgar.net> (http://borgar.net/)",
   "license": "MIT",
   "devDependencies": {
-    "@borgar/eslint-config": "~1.1.0",
-    "eslint": "~6.8.0",
+    "@borgar/eslint-config": "~2.1.0",
+    "eslint": "~7.15.0",
     "tap-min": "~2.0.0",
     "tape": "~4.12.1"
   }
