@@ -1,14 +1,20 @@
 {
   "name": "@borgar/simple-xml",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "Overly simplistic (but fast) XML parser",
+  "type": "module",
   "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "simple-xml.d.ts",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "lint": "eslint lib/",
-    "test": "tape test/index.js | tap-min"
+    "test": "tape test/index.js | tap-min",
+    "build:types": "jsdoc -c tsd.json lib>simple-xml.d.ts",
+    "build:docs": "echo '# _Simple-xml_ API\n'>API.md; jsdoc -t node_modules/@borgar/jsdoc-tsmd -d console lib/>>API.md",
+    "build": "npm run build:types && npm run build:docs && echo 'Success!'"
   },
   "repository": {
     "type": "git",
@@ -18,12 +24,23 @@
     "xml",
     "parser"
   ],
+  "engines": {
+    "node": ">12.0.0"
+  },
   "author": "Borgar Þorsteinsson <borgar@borgar.net> (http://borgar.net/)",
   "license": "MIT",
   "devDependencies": {
-    "@borgar/eslint-config": "~2.1.0",
-    "eslint": "~7.15.0",
+    "@babel/preset-env": "~7.22.5",
+    "@borgar/eslint-config": "~3.1.0",
+    "@borgar/jsdoc-tsmd": "~0.1.0",
+    "@rollup/plugin-babel": "~6.0.3",
+    "eslint": "~8.43.0",
+    "eslint-plugin-jsdoc": "~46.2.6",
+    "jsdoc": "~4.0.2",
+    "rollup": "~3.26.0",
+    "rollup-plugin-minification": "~0.2.0",
     "tap-min": "~2.0.0",
-    "tape": "~4.12.1"
+    "tape": "~5.6.3",
+    "typescript": "~5.1.3"
   }
 }

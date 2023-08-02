@@ -1,13 +1,13 @@
 /* eslint-disable quotes, quote-props, indent */
-const test = require('tape');
-const fs = require('fs');
-const xml = require('../lib');
+import test from 'tape';
+import fs from 'fs';
+import { parseXML } from '../lib/index.js';
 
 test('basic.xml', t => {
   const fileName = 'test/data/basic.xml';
   const expected = [ 'node', { attr: 'value' } ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -15,7 +15,7 @@ test('basic.xml', t => {
 test('large.xml', t => {
   const fileName = 'test/data/large.xml';
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.is(dom.childNodes.length, 1);
   t.is(dom.childNodes[0].childNodes.length, 10000);
   t.end();
@@ -33,7 +33,7 @@ test('whitespace.xml', t => {
       [ "b", [ "c", " c " ], " b " ] ]
   ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected);
   t.equal(dom.root.textContent, "   c  b   c  b ");
   t.end();
@@ -47,7 +47,7 @@ test('refs.xml', t => {
     '\n\tpcdata < > & " \' \f «\n\t&unknown; %entity;\n'
   ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -56,7 +56,7 @@ test('small.xml', t => {
   const fileName = 'test/data/small.xml';
   const expected = [ 'node' ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -82,7 +82,7 @@ test('latintest.xml', t => {
         [ 'TEXT', 'This is a text.' ] ] ]
   ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -110,7 +110,7 @@ test('truncation.xml', t => {
         "太郎" ] ]
   ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -124,7 +124,7 @@ test('types.xml', t => {
     '\n\tpcdata\n\t test '
   ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -239,7 +239,7 @@ test('utftest_utf8.xml', t => {
           "検索エンジンで車を走らせることができない。（要調査）" ] ] ] ] ];
 
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -353,7 +353,7 @@ test('utftest_utf8_bom.xml', t => {
         [ "P",
           "検索エンジンで車を走らせることができない。（要調査）" ] ] ] ] ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -467,7 +467,7 @@ test('utftest_utf8_clean.xml', t => {
         [ "P",
           "検索エンジンで車を走らせることができない。（要調査）" ] ] ] ] ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
@@ -581,7 +581,7 @@ test('utftest_utf8_nodecl.xml', t => {
         [ "P",
           "検索エンジンで車を走らせることができない。（要調査）" ] ] ] ] ];
   const src = fs.readFileSync(fileName, 'utf8');
-  const dom = xml.parse(src);
+  const dom = parseXML(src);
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });

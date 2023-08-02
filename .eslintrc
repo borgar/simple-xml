@@ -1,5 +1,26 @@
 {
-  extends: ['@borgar/eslint-config'],
-  env: { node: true },
-  globals: { Set: true }
+  "extends": [
+    "@borgar/eslint-config",
+    "@borgar/eslint-config/jsdoc"
+  ],
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "plugins": [
+    "jsdoc"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "requireConfigFile": false
+  },
+  "settings": {
+    "jsdoc": {
+      "mode": "jsdoc"
+    }
+  },
+  "globals": {
+    "Set": true
+  }
 }

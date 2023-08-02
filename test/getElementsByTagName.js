@@ -1,16 +1,16 @@
-const test = require('tape');
-const xml = require('../lib');
+import test from 'tape';
+import { parseXML } from '../lib/index.js';
 
 test('getElementByTagName', t => {
-  let dom = xml.parse('<a><b /></a>');
+  let dom = parseXML('<a><b /></a>');
   t.is(dom.getElementsByTagName('a').length, 1);
   t.is(dom.getElementsByTagName('b').length, 1);
 
-  dom = xml.parse('<a><b /><b /><b /><b /><b /><b /></a>');
+  dom = parseXML('<a><b /><b /><b /><b /><b /><b /></a>');
   t.is(dom.getElementsByTagName('a').length, 1);
   t.is(dom.getElementsByTagName('b').length, 6);
 
-  dom = xml.parse('<a><b><c><d><e><f /></e></d></c></b></a>');
+  dom = parseXML('<a><b><c><d><e><f /></e></d></c></b></a>');
   t.is(dom.getElementsByTagName('f').length, 1);
   t.is(dom.getElementsByTagName('d')[0].getElementsByTagName('f').length, 1);
 
@@ -18,7 +18,7 @@ test('getElementByTagName', t => {
 });
 
 test('getElementByTagName source order', t => {
-  const dom = xml.parse(`
+  const dom = parseXML(`
 <a>
   <d o="1" />
   <b>

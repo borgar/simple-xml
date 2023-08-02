@@ -31,9 +31,9 @@ $ npm i @borgar/simple-xml
 ## Parsing XML
 
 ```js
-const xml = require('@borgar/simple-xml');
+import { parseXML } from '@borgar/simple-xml';
 
-const dom = xml.parse('<root><node>Lorem ipsum</node></root>');
+const dom = parseXML('<root><node>Lorem ipsum</node></root>');
 console.log(dom.getElementsByTagName('node').textContent);
 ```
 
@@ -41,16 +41,19 @@ The parse function accepts two arguments, the first is an XML source. The second
 
 Allow normally forbidden unquoted attributes with `laxAttr`:
 
-```
-xml.parse('<root><node foo=bar /></root>', { laxAttr: true });
+```js
+parseXML('<root><node foo=bar /></root>', { laxAttr: true });
 ```
 
 Allow normally forbidden "rootless" documents with `emptyDoc`:
-```
-xml.parse('', { emptyDoc: true });
+
+```js
+parseXML('', { emptyDoc: true });
 ```
 
 As well as a parse method, the package exports Node classes: Node, Element, Document, TextNode, and CDataNode. They are pretty much what you expect but with an incomplete or altered set of DOM API functions.
+
+[See the API documentation.](API.md)
 
 ### Nodes have the following methods and properties
 

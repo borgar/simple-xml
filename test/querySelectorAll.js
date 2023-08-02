@@ -1,9 +1,9 @@
-const fs = require('fs');
-const test = require('tape');
-const xml = require('../lib');
+import fs from 'fs';
+import test from 'tape';
+import { parseXML } from '../lib/index.js';
 
 const src = fs.readFileSync('test/data/css-selectors.xml', 'utf8');
-const dom = xml.parse(src);
+const dom = parseXML(src);
 
 test('querySelectorAll', t => {
   const qsa = sel => dom.root.querySelectorAll(sel).length;
