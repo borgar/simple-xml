@@ -27,7 +27,9 @@ test('whitespace.xml', t => {
     "node",
     [ "a",
       { "xml:space": "preserve" },
-      " ", [ "b", " ", [ "c", " c " ],  " b " ], " " ],
+      " ",
+      [ "b", " ", [ "c", " c " ],  " b " ],
+      " " ],
     [ "a",
       { "xml:space": "default" },
       [ "b", [ "c", " c " ], " b " ] ]
@@ -65,7 +67,8 @@ test('latintest.xml', t => {
   const fileName = 'test/data/latintest.xml';
   const expected = [
     'EXAMPLE',
-    [ 'ORDER', { 'version': '1.0', 'xml:lang': 'de' },
+    [ 'ORDER',
+      { 'version': '1.0', 'xml:lang': 'de' },
       [ 'HEADER',
         [ 'X_ORDER_ID', '0000053535' ],
         [ 'CUSTOMER_ID', '1010' ],
@@ -585,5 +588,3 @@ test('utftest_utf8_nodecl.xml', t => {
   t.deepEqual(dom.toJS(), expected, fileName);
   t.end();
 });
-
-

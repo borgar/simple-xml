@@ -91,9 +91,9 @@ test('invalid syntax', t => {
   t.throws(() => parseXML('<a x=1/>'));
   t.throws(() => parseXML('<a x=foo />'));
   // allow lax parsing of attr with option:
-  t.deepEqual(parseXML('<a x/>', laxAttr).toJS(), [ 'a', { x: '' }]);
-  t.deepEqual(parseXML('<a x=1/>', laxAttr).toJS(), [ 'a', { x: '1' }]);
-  t.deepEqual(parseXML('<a x=foo/>', laxAttr).toJS(), [ 'a', { x: 'foo' }]);
+  t.deepEqual(parseXML('<a x/>', laxAttr).toJS(), [ 'a', { x: '' } ]);
+  t.deepEqual(parseXML('<a x=1/>', laxAttr).toJS(), [ 'a', { x: '1' } ]);
+  t.deepEqual(parseXML('<a x=foo/>', laxAttr).toJS(), [ 'a', { x: 'foo' } ]);
 
   t.throws(() => parseXML('<a>'));
   t.throws(() => parseXML('<a><b></a>'));
@@ -137,7 +137,6 @@ test('processing instructions', t => {
   t.throws(() => parseXML('<?name& x?>'));
   t.end();
 });
-
 
 test('comments', t => {
   t.deepEqual(parseXML('<!--comment--><a />').toJS(), [ 'a' ]);

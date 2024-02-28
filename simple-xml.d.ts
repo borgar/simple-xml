@@ -25,6 +25,12 @@ export declare class CDataNode extends Node {
     preserveSpace: boolean;
     /** The text content of this node (and its children). */
     textContent: string;
+    /**
+     * Returns a string representation of the node.
+     *
+     * @returns A formatted XML source.
+     */
+    toString(): string;
     /** The nodes data value. */
     value: string;
 }
@@ -72,6 +78,12 @@ export declare class Document extends Node {
      * @returns JsonML representation of the nodes and its subtree.
      */
     toJS(): (Array<any> | null);
+    /**
+     * Returns a string representation of the node.
+     *
+     * @returns A formatted XML source.
+     */
+    toString(): string;
 }
 
 /** A class describing an Element. */
@@ -162,6 +174,12 @@ export declare class Element extends Node {
      * @returns JsonML representation of the nodes and its subtree.
      */
     toJS(): (Array<any> | string);
+    /**
+     * Returns a string representation of the node.
+     *
+     * @returns A formatted XML source.
+     */
+    toString(): string;
 }
 
 /** A class describing a Node. */
@@ -187,6 +205,12 @@ export declare class Node {
     preserveSpace: boolean;
     /** The text content of this node (and its children). */
     textContent: string;
+    /**
+     * Returns a string representation of the node.
+     *
+     * @returns A formatted XML source.
+     */
+    toString(): string;
 }
 
 /** A class describing a TextNode. */
@@ -216,6 +240,12 @@ export declare class TextNode extends Node {
     preserveSpace: boolean;
     /** The text content of this node (and its children). */
     textContent: string;
+    /**
+     * Returns a string representation of the node.
+     *
+     * @returns A formatted XML source.
+     */
+    toString(): string;
     /** The node's data value. */
     value: string;
 }

@@ -11,6 +11,7 @@
   - [.parentNode](#CDataNode.parentNode)
   - [.preserveSpace](#CDataNode.preserveSpace)
   - [.textContent](#CDataNode.textContent)
+  - [.toString()](#CDataNode.toString)
   - [.value](#CDataNode.value)
 - [Document()](#Document)
   - [.appendChild( node )](#Document.appendChild)
@@ -24,6 +25,7 @@
   - [.querySelectorAll( selector )](#Document.querySelectorAll)
   - [.textContent](#Document.textContent)
   - [.toJS()](#Document.toJS)
+  - [.toString()](#Document.toString)
 - [Element( tagName, _\[attr, closed\]_ )](#Element)
   - [.constructor( tagName, _\[attr, closed\]_ )](#Element.constructor)
   - [.appendChild( node )](#Element.appendChild)
@@ -46,6 +48,7 @@
   - [.tagName](#Element.tagName)
   - [.textContent](#Element.textContent)
   - [.toJS()](#Element.toJS)
+  - [.toString()](#Element.toString)
 - [Node()](#Node)
   - [.constructor()](#Node.constructor)
   - [.appendChild( node )](#Node.appendChild)
@@ -55,6 +58,7 @@
   - [.parentNode](#Node.parentNode)
   - [.preserveSpace()](#Node.preserveSpace)
   - [.textContent()](#Node.textContent)
+  - [.toString()](#Node.toString)
 - [TextNode( _\[value\]_ )](#TextNode)
   - [.constructor( _\[value\]_ )](#TextNode.constructor)
   - [.appendChild( node )](#TextNode.appendChild)
@@ -64,6 +68,7 @@
   - [.parentNode](#TextNode.parentNode)
   - [.preserveSpace](#TextNode.preserveSpace)
   - [.textContent](#TextNode.textContent)
+  - [.toString()](#TextNode.toString)
   - [.value](#TextNode.value)
 
 **Function**
@@ -154,6 +159,16 @@ True if xml:space has been set to true for this node or any of its ancestors.
 #### <a id="CDataNode.textContent" href="#CDataNode.textContent">#</a> .textContent
 
 The text content of this node (and its children).
+
+---
+
+#### <a id="CDataNode.toString" href="#CDataNode.toString">#</a> .toString() ⇒ `string`
+
+Returns a string representation of the node.
+
+##### Returns
+
+`string` – A formatted XML source.
 
 ---
 
@@ -266,6 +281,16 @@ Returns a simple object representation of the node and its descendants.
 ##### Returns
 
 `Array<any>` | `null` – JsonML representation of the nodes and its subtree.
+
+---
+
+#### <a id="Document.toString" href="#Document.toString">#</a> .toString() ⇒ `string`
+
+Returns a string representation of the node.
+
+##### Returns
+
+`string` – A formatted XML source.
 
 ---
 
@@ -476,6 +501,16 @@ Returns a simple object representation of the node and its descendants.
 
 ---
 
+#### <a id="Element.toString" href="#Element.toString">#</a> .toString() ⇒ `string`
+
+Returns a string representation of the node.
+
+##### Returns
+
+`string` – A formatted XML source.
+
+---
+
 ### <a id="Node" href="#Node">#</a> Node()
 
 A class describing a Node.
@@ -537,6 +572,16 @@ True if xml:space has been set to true for this node or any of its ancestors.
 #### <a id="Node.textContent" href="#Node.textContent">#</a> .textContent() ⇒ `void`
 
 The text content of this node (and its children).
+
+---
+
+#### <a id="Node.toString" href="#Node.toString">#</a> .toString() ⇒ `string`
+
+Returns a string representation of the node.
+
+##### Returns
+
+`string` – A formatted XML source.
 
 ---
 
@@ -607,6 +652,16 @@ True if xml:space has been set to true for this node or any of its ancestors.
 #### <a id="TextNode.textContent" href="#TextNode.textContent">#</a> .textContent
 
 The text content of this node (and its children).
+
+---
+
+#### <a id="TextNode.toString" href="#TextNode.toString">#</a> .toString() ⇒ `string`
+
+Returns a string representation of the node.
+
+##### Returns
+
+`string` – A formatted XML source.
 
 ---
 
