@@ -49,12 +49,12 @@ export declare class Document extends Node {
     /** A list containing all child Elements of the current Element. */
     children: Array<Node>;
     /**
-     * Return all child elements that have the specified tag name.
+     * Return all descendant elements that have the specified tag name.
      *
      * @param tagName The tag name to filter by.
      * @returns The elements by tag name.
      */
-    getElementsByTagName(tagName: string): Array<Node>;
+    getElementsByTagName(tagName: string): Array<Element>;
     /** A node type string identifier. */
     nodeName: string;
     /** A numerical node type identifier. */
@@ -64,12 +64,19 @@ export declare class Document extends Node {
     /** True if xml:space has been set to true for this node or any of its ancestors. */
     preserveSpace: boolean;
     /**
-     * Return all child elements that match a specified CSS selector.
+     * Return the first descendant element that match a specified CSS selector.
      *
      * @param selector The CSS selector to filter by.
      * @returns The elements by tag name.
      */
-    querySelectorAll(selector: string): Array<Node>;
+    querySelector(selector: string): (Element | null);
+    /**
+     * Return all descendant elements that match a specified CSS selector.
+     *
+     * @param selector The CSS selector to filter by.
+     * @returns The elements by tag name.
+     */
+    querySelectorAll(selector: string): Array<Element>;
     /** The text content of this node (and its children). */
     textContent: string;
     /**
@@ -108,7 +115,7 @@ export declare class Element extends Node {
     /** The node's children. */
     childNodes: Array<Node>;
     /** A list containing all child Elements of the current Element. */
-    children: Array<Node>;
+    children: Array<Element>;
     /** A state representing if the element was "self-closed" when read. */
     closed: boolean;
     /** The full name of the tag for the given element, including a namespace prefix. */
@@ -121,12 +128,12 @@ export declare class Element extends Node {
      */
     getAttribute(name: string): (string | null);
     /**
-     * Return all child elements that have the specified tag name.
+     * Return all descendant elements that have the specified tag name.
      *
      * @param tagName The tag name to filter by.
      * @returns The elements by tag name.
      */
-    getElementsByTagName(tagName: string): Array<Node>;
+    getElementsByTagName(tagName: string): Array<Element>;
     /**
      * Test if an attribute exists on the element.
      *
@@ -145,12 +152,19 @@ export declare class Element extends Node {
     /** True if xml:space has been set to true for this node or any of its ancestors. */
     preserveSpace: boolean;
     /**
-     * Return all child elements that match a specified CSS selector.
+     * Return the first descendant element that match a specified CSS selector.
      *
      * @param selector The CSS selector to filter by.
      * @returns The elements by tag name.
      */
-    querySelectorAll(selector: string): Array<Node>;
+    querySelector(selector: string): (Element | null);
+    /**
+     * Return all descendant elements that match a specified CSS selector.
+     *
+     * @param selector The CSS selector to filter by.
+     * @returns The elements by tag name.
+     */
+    querySelectorAll(selector: string): Array<Element>;
     /**
      * Remove an attribute off the element.
      *

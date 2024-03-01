@@ -22,6 +22,7 @@
   - [.nodeType](#Document.nodeType)
   - [.parentNode](#Document.parentNode)
   - [.preserveSpace](#Document.preserveSpace)
+  - [.querySelector( selector )](#Document.querySelector)
   - [.querySelectorAll( selector )](#Document.querySelectorAll)
   - [.textContent](#Document.textContent)
   - [.toJS()](#Document.toJS)
@@ -42,6 +43,7 @@
   - [.ns](#Element.ns)
   - [.parentNode](#Element.parentNode)
   - [.preserveSpace](#Element.preserveSpace)
+  - [.querySelector( selector )](#Element.querySelector)
   - [.querySelectorAll( selector )](#Element.querySelectorAll)
   - [.removeAttribute( name )](#Element.removeAttribute)
   - [.setAttribute( name, value )](#Element.setAttribute)
@@ -212,9 +214,9 @@ A list containing all child Elements of the current Element.
 
 ---
 
-#### <a id="Document.getElementsByTagName" href="#Document.getElementsByTagName">#</a> .getElementsByTagName( tagName ) ⇒ `Array<Node>`
+#### <a id="Document.getElementsByTagName" href="#Document.getElementsByTagName">#</a> .getElementsByTagName( tagName ) ⇒ `Array<Element>`
 
-Return all child elements that have the specified tag name.
+Return all descendant elements that have the specified tag name.
 
 ##### Parameters
 
@@ -224,7 +226,7 @@ Return all child elements that have the specified tag name.
 
 ##### Returns
 
-`Array<Node>` – The elements by tag name.
+`Array<Element>` – The elements by tag name.
 
 ---
 
@@ -252,9 +254,9 @@ True if xml:space has been set to true for this node or any of its ancestors.
 
 ---
 
-#### <a id="Document.querySelectorAll" href="#Document.querySelectorAll">#</a> .querySelectorAll( selector ) ⇒ `Array<Node>`
+#### <a id="Document.querySelector" href="#Document.querySelector">#</a> .querySelector( selector ) ⇒ [`Element`](#Element) | `null`
 
-Return all child elements that match a specified CSS selector.
+Return the first descendant element that match a specified CSS selector.
 
 ##### Parameters
 
@@ -264,7 +266,23 @@ Return all child elements that match a specified CSS selector.
 
 ##### Returns
 
-`Array<Node>` – The elements by tag name.
+[`Element`](#Element) | `null` – The elements by tag name.
+
+---
+
+#### <a id="Document.querySelectorAll" href="#Document.querySelectorAll">#</a> .querySelectorAll( selector ) ⇒ `Array<Element>`
+
+Return all descendant elements that match a specified CSS selector.
+
+##### Parameters
+
+| Name     | Type     | Description                    |
+| -------- | -------- | ------------------------------ |
+| selector | `string` | The CSS selector to filter by. |
+
+##### Returns
+
+`Array<Element>` – The elements by tag name.
 
 ---
 
@@ -376,9 +394,9 @@ Read an attribute from the element.
 
 ---
 
-#### <a id="Element.getElementsByTagName" href="#Element.getElementsByTagName">#</a> .getElementsByTagName( tagName ) ⇒ `Array<Node>`
+#### <a id="Element.getElementsByTagName" href="#Element.getElementsByTagName">#</a> .getElementsByTagName( tagName ) ⇒ `Array<Element>`
 
-Return all child elements that have the specified tag name.
+Return all descendant elements that have the specified tag name.
 
 ##### Parameters
 
@@ -388,7 +406,7 @@ Return all child elements that have the specified tag name.
 
 ##### Returns
 
-`Array<Node>` – The elements by tag name.
+`Array<Element>` – The elements by tag name.
 
 ---
 
@@ -438,9 +456,9 @@ True if xml:space has been set to true for this node or any of its ancestors.
 
 ---
 
-#### <a id="Element.querySelectorAll" href="#Element.querySelectorAll">#</a> .querySelectorAll( selector ) ⇒ `Array<Node>`
+#### <a id="Element.querySelector" href="#Element.querySelector">#</a> .querySelector( selector ) ⇒ [`Element`](#Element) | `null`
 
-Return all child elements that match a specified CSS selector.
+Return the first descendant element that match a specified CSS selector.
 
 ##### Parameters
 
@@ -450,7 +468,23 @@ Return all child elements that match a specified CSS selector.
 
 ##### Returns
 
-`Array<Node>` – The elements by tag name.
+[`Element`](#Element) | `null` – The elements by tag name.
+
+---
+
+#### <a id="Element.querySelectorAll" href="#Element.querySelectorAll">#</a> .querySelectorAll( selector ) ⇒ `Array<Element>`
+
+Return all descendant elements that match a specified CSS selector.
+
+##### Parameters
+
+| Name     | Type     | Description                    |
+| -------- | -------- | ------------------------------ |
+| selector | `string` | The CSS selector to filter by. |
+
+##### Returns
+
+`Array<Element>` – The elements by tag name.
 
 ---
 
