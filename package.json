@@ -1,6 +1,6 @@
 {
   "name": "@borgar/simple-xml",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Overly simplistic (but fast) XML parser",
   "type": "module",
   "main": "lib/index.js",
