@@ -6,21 +6,13 @@ import { prettyPrint } from './prettyPrint.js';
  */
 export class Node {
   /** The node's immediate children. */
-  childNodes: Node[];
+  childNodes: Node[] = [];
   /** A node type string identifier. */
-  nodeName: string;
+  nodeName: string = '#node';
   /** A numerical node type identifier. */
-  nodeType: number;
+  nodeType: number = 0;
   /** The node's parent node. */
-  parentNode: Node | null;
-
-  /** Constructs a new Node instance. */
-  constructor () {
-    this.childNodes = [];
-    this.nodeName = '#node';
-    this.nodeType = 0;
-    this.parentNode = null;
-  }
+  parentNode: Node | null = null;
 
   /**
    * Appends a child node into the current one.

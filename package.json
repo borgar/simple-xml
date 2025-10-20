@@ -3,9 +3,16 @@
   "version": "2.1.0",
   "description": "Overly simplistic (but fast) XML parser",
   "type": "module",
-  "main": "lib/index.js",
-  "module": "lib/index.js",
-  "types": "simple-xml.d.ts",
+  "source": "src/index.ts",
+  "main": "dist/index.cjs",
+  "types": "dist/index.d.cts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.js"
+    }
+  },
   "directories": {
     "test": "test"
   },
@@ -14,10 +21,23 @@
     "test": "vitest run",
     "check": "npm run test && npm run lint && npm run typecheck",
     "typecheck": "tsc --noEmit",
-    "docs": "typedoc && concat-md tempdocs > docs/API.md && rm -rf tempdocs",
+    "docs": "typedoc && concat-md tempdocs > API.md && rm -rf tempdocs",
     "build:dist": "tsup",
     "build": "npm run build:dist && npm run docs && echo 'Success!'",
     "release": "git diff --exit-code && tsup && npm publish && V=$(jq -r .version package.json) && git tag -a $V -m $V && git push origin $V && gh release create $V --generate-notes"
+  },
+  "tsup": {
+    "entry": [
+      "lib/index.ts"
+    ],
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true,
+    "dts": true
   },
   "repository": {
     "type": "git",

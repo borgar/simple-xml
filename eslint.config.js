@@ -25,11 +25,10 @@ export default tseslint.config(
   borgarLint.config.stylistic({
     commaDangle: false,
     singleBlocks: true,
-    lineLength: 120,
+    lineLength: 120
   }),
   {
     rules: {
-      // '@typescript-eslint/no-unsafe-assignment': 'off',
       'no-shadow': 'off'
     }
   }
