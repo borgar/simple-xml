@@ -1,6 +1,6 @@
 {
   "name": "@borgar/simple-xml",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Overly simplistic (but fast) XML parser",
   "type": "module",
   "main": "lib/index.js",
@@ -12,10 +12,12 @@
   "scripts": {
     "lint": "eslint lib/",
     "test": "vitest run",
+    "check": "npm run test && npm run lint && npm run typecheck",
     "typecheck": "tsc --noEmit",
-    "build:types": "jsdoc -c tsd.json lib>simple-xml.d.ts",
-    "build:docs": "echo '# _Simple-xml_ API\n'>API.md; jsdoc -t node_modules/@borgar/jsdoc-tsmd -d console lib/>>API.md",
-    "build": "npm run build:types && npm run build:docs && echo 'Success!'"
+    "docs": "typedoc && concat-md tempdocs > docs/API.md && rm -rf tempdocs",
+    "build:dist": "tsup",
+    "build": "npm run build:dist && npm run docs && echo 'Success!'",
+    "release": "git diff --exit-code && tsup && npm publish && V=$(jq -r .version package.json) && git tag -a $V -m $V && git push origin $V && gh release create $V --generate-notes"
   },
   "repository": {
     "type": "git",
@@ -31,14 +33,16 @@
   "author": "Borgar Þorsteinsson <borgar@borgar.net> (http://borgar.net/)",
   "license": "MIT",
   "devDependencies": {
-    "@borgar/eslint-config": "~3.1.0",
-    "@borgar/jsdoc-tsmd": "~0.1.0",
-    "@rollup/plugin-babel": "~6.0.3",
-    "eslint": "~8.46.0",
-    "eslint-plugin-jsdoc": "~46.4.5",
+    "@borgar/eslint-config": "~4.0.0",
+    "@eslint/js": "~9.35.0",
+    "concat-md": "~0.5.1",
+    "eslint": "~9.35.0",
     "jsdoc": "~4.0.2",
-    "rollup-plugin-minification": "~0.2.0",
+    "tsup": "~8.5.0",
+    "typedoc": "~0.28.13",
+    "typedoc-plugin-markdown": "~4.8.1",
     "typescript": "~5.9.2",
+    "typescript-eslint": "~8.44.0",
     "vitest": "~3.2.4"
   }
 }

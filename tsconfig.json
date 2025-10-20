@@ -1,5 +1,5 @@
 {
-	"include": ["lib/**/*"],
+	"include": ["lib/", "eslint.config.js"],
 	"compilerOptions": {
 		"rootDir": ".",
 		"target": "ES2022",
