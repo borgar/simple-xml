@@ -1,8 +1,10 @@
 import { Node } from './Node.js';
 import { ELEMENT_NODE } from './constants.js';
-import { JsonML } from './JsonML.js';
+import { JsonML, type JsonMLElement } from './JsonML.js';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
+import { isElement } from './isElement.ts';
+
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -12,44 +14,38 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
  * @augments Node
  */
 export class Element extends Node {
+  /** The namespace prefix of the element, or null if no prefix is specified. */
+  ns: string;
+  /** The name of the tag for the given element, excluding any namespace prefix. */
+  tagName: string;
+  /** The full name of the tag for the given element, including a namespace prefix. */
+  fullName: string;
+  /** A state representing if the element was "self-closed" when read. */
+  closed: boolean;
+  /** An object of attributes assigned to this element. */
+  attr: Record<string, string>;
+  /** The node's parent node. */
+  parentNode: Element | null = null;
+
   /**
    * Constructs a new Element instance.
    *
-   * @param {string} tagName The tag name of the node.
-   * @param {object} [attr={}] A collection of attributes to assign.
-   * @param {boolean} [closed=false] Was the element "self-closed" when read.
+   * @param tagName The tag name of the node.
+   * @param [attr={}] A collection of attributes to assign.
+   * @param [closed=false] Was the element "self-closed" when read.
    */
-  constructor (tagName, attr = {}, closed = false) {
+  constructor (tagName: string, attr: Record<string, string> = {}, closed: boolean = false) {
     super();
     let tagName_ = tagName;
-    let ns = null;
+    let ns: string | null = null;
     if (tagName.includes(':')) {
       [ ns, tagName_ ] = tagName.split(':');
     }
-    /**
-     * The namespace prefix of the element, or null if no prefix is specified.
-     * @type {string}
-     */
-    this.ns = ns;
-    /**
-     * The name of the tag for the given element, excluding any namespace prefix.
-     * @type {string}
-     */
+    this.ns = ns || '';
     this.tagName = tagName_;
-    /**
-     * The full name of the tag for the given element, including a namespace prefix.
-     * @type {string}
-     */
     this.fullName = tagName;
-    /**
-     * A state representing if the element was "self-closed" when read.
-     * @type {boolean}
-     */
     this.closed = !!closed;
-    /**
-     * An object of attributes assigned to this element.
-     * @type {Object<string,string>}
-     */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.attr = Object.assign(Object.create(null), attr);
 
     // inherited instance props from Node
@@ -59,7 +55,7 @@ export class Element extends Node {
   }
 
   // overwrites super
-  get preserveSpace () {
+  get preserveSpace (): boolean {
     if (this.attr && this.attr['xml:space'] === 'preserve') {
       return true;
     }
@@ -71,59 +67,57 @@ export class Element extends Node {
 
   /**
    * A list containing all child Elements of the current Element.
-   *
-   * @type {Array<Element>}
    */
-  get children () {
-    return this.childNodes.filter(d => d && d.nodeType === ELEMENT_NODE);
+  get children (): Element[] {
+    return this.childNodes.filter(isElement);
   }
 
   /**
    * Read an attribute from the element.
    *
-   * @param {string} name The attribute name to read.
-   * @returns {string|null} The attribute.
+   * @param name The attribute name to read.
+   * @returns The attribute.
    */
-  getAttribute (name) {
+  getAttribute (name: string): string | null {
     return this.hasAttribute(name) ? this.attr[name] : null;
   }
 
   /**
    * Sets an attribute on the element.
    *
-   * @param {string} name The attribute name to read.
-   * @param {string} value The value to set
+   * @param name The attribute name to read.
+   * @param value The value to set
    */
-  setAttribute (name, value) {
+  setAttribute (name: string, value: string) {
     this.attr[name] = value;
   }
 
   /**
    * Test if an attribute exists on the element.
    *
-   * @param {string} name The attribute name to test for.
-   * @returns {boolean} True if the attribute is present.
+   * @param name The attribute name to test for.
+   * @returns True if the attribute is present.
    */
-  hasAttribute (name) {
+  hasAttribute (name: string): boolean {
     return this.attr && hasOwnProperty.call(this.attr, name);
   }
 
   /**
    * Remove an attribute off the element.
    *
-   * @param {string} name The attribute name to remove.
+   * @param name The attribute name to remove.
    */
-  removeAttribute (name) {
+  removeAttribute (name: string) {
     delete this.attr[name];
   }
 
   /**
    * Return all descendant elements that have the specified tag name.
    *
-   * @param {string} tagName The tag name to filter by.
-   * @returns {Array<Element>} The elements by tag name.
+   * @param tagName The tag name to filter by.
+   * @returns The elements by tag name.
    */
-  getElementsByTagName (tagName) {
+  getElementsByTagName (tagName: string): Element[] {
     if (!tagName) {
       throw new Error('1 argument required, but 0 present.');
     }
@@ -134,10 +128,10 @@ export class Element extends Node {
   /**
    * Return the first descendant element that match a specified CSS selector.
    *
-   * @param {string} selector The CSS selector to filter by.
-   * @returns {Element | null} The elements by tag name.
+   * @param selector The CSS selector to filter by.
+   * @returns The elements by tag name.
    */
-  querySelector (selector) {
+  querySelector (selector: string): Element | null {
     if (!selector) {
       throw new Error('1 argument required, but 0 present.');
     }
@@ -147,10 +141,10 @@ export class Element extends Node {
   /**
    * Return all descendant elements that match a specified CSS selector.
    *
-   * @param {string} selector The CSS selector to filter by.
-   * @returns {Array<Element>} The elements by tag name.
+   * @param selector The CSS selector to filter by.
+   * @returns The elements by tag name.
    */
-  querySelectorAll (selector) {
+  querySelectorAll (selector: string): Element[] {
     if (!selector) {
       throw new Error('1 argument required, but 0 present.');
     }
@@ -160,9 +154,9 @@ export class Element extends Node {
   /**
    * Returns a simple object representation of the node and its descendants.
    *
-   * @returns {Array<any>|string} JsonML representation of the nodes and its subtree.
+   * @returns JsonML representation of the nodes and its subtree.
    */
-  toJS () {
+  toJS (): JsonMLElement {
     return JsonML(this);
   }
 }

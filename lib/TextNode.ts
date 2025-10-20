@@ -7,19 +7,18 @@ import { TEXT_NODE } from './constants.js';
  * @augments Node
  */
 export class TextNode extends Node {
+  /** The node's data value. */
+  value: string;
+
   /**
    * Constructs a new TextNode instance.
-   * @param {string} [value=''] The data for the node
+   * @param {string} [value] The data for the node
    */
-  constructor (value = '') {
+  constructor (value: string) {
     super();
     this.nodeName = '#text';
     this.nodeType = TEXT_NODE;
-    /**
-     * The node's data value.
-     * @type {string}
-     */
-    this.value = value;
+    this.value = value || '';
   }
 
   // overwrites super

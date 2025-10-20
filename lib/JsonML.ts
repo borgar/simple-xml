@@ -1,36 +1,50 @@
 import { CDATA_SECTION_NODE, TEXT_NODE } from './constants.js';
+import type { Element } from './Element.ts';
+import { isElement } from './isElement.ts';
+import type { Node } from './Node.ts';
 
-const isText = d => (
+const isText = (d: Node) => (
   d.nodeType === TEXT_NODE ||
   d.nodeType === CDATA_SECTION_NODE
 );
 
-export function JsonML (node) {
+export type JsonMLAttr = Record<string, string | number | boolean | null>;
+export type JsonMLElement =
+  [ string, JsonMLAttr, ...JsonMLElement[] ] |
+  [ string, JsonMLAttr ] |
+  [ string, ...JsonMLElement[] ] |
+  [ string ] |
+  string;
+
+export function JsonML (node: Element): JsonMLElement {
   // name of the element
-  const n = [ node.fullName ?? node.nodeName ];
+  const n: JsonMLElement = [ node.fullName ?? node.nodeName ];
   // it's attributes as an object
   if (node.attr && Object.keys(node.attr).length) {
-    n.push(Object.assign({}, node.attr));
+    // @ts-expect-error -- TS has trouble figuring out how this is built
+    n.push(Object.assign({}, node.attr) as JsonMLAttr);
   }
   // it's content
   if (node.childNodes?.length) {
-    const content = [];
+    const content: JsonMLElement[] = [];
     node.childNodes.forEach(d => {
       if (isText(d)) {
         const s = d.textContent;
         // if last item in content is a string, then concat
-        if (typeof content[content.length - 1] === 'string') {
-          content[content.length - 1] += s;
+        const last = content[content.length - 1];
+        if (typeof last === 'string') {
+          content[content.length - 1] = last + s;
         }
         // else add the item, given that we have one
         else if (s) {
           content.push(s);
         }
       }
-      else {
+      else if (isElement(d)) {
         content.push(JsonML(d));
       }
     });
+    // @ts-expect-error -- TS has trouble figuring out how this is built
     n.push(...content);
   }
   return n;

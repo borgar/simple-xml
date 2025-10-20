@@ -4,6 +4,7 @@ export { Element } from './Element.js';
 export { Document } from './Document.js';
 export { TextNode } from './TextNode.js';
 export { CDataNode } from './CDataNode.js';
+export type { JsonMLElement, JsonMLAttr } from './JsonML.js';
 export {
   ELEMENT_NODE,
   ATTRIBUTE_NODE,

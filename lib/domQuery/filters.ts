@@ -1,39 +1,17 @@
-/* eslint-disable jsdoc/no-undefined-types */
 import { Element } from '../Element.js';
 
 const re_nthValue = /(-?)(\d+)?(n[+-](\d+))?/;
 
-/**
- * @ignore
- * @param {string} matchTag The criteria tag the candidate tag must match
- * @param {string} candTag The candidate tag
- * @returns {boolean} is it a match?
- */
-const nameMatch = (matchTag, candTag) => matchTag === '*' || matchTag === candTag;
+const nameMatch = (matchTag: string, candTag: string): boolean => matchTag === '*' || matchTag === candTag;
 
-/**
- * @ignore
- * @param {number|boolean} a Left value
- * @param {number|boolean} b Right value
- * @returns {boolean} Result
- */
-const xor = (a, b) => !!(+a ^ +b);
+const xor = (a?: number | boolean, b?: number | boolean): boolean => !!(+(a || 0) ^ +(b || 0));
 
-/**
- * @ignore
- * @callback Filter
- * @param {string} query
- * @param {Element[]} elms
- * @param {boolean} [not]
- * @param {string} [name]
- * @param {boolean} [last]
- */
+type Filter = (query: string, elms: Element[], not?: boolean, name?: string, last?: boolean) => Element[];
 
-/** @type {Record<string, Filter>} */
-export const FILTERS = {
+export const FILTERS: Record<string, Filter> = {
   // "E > F" => Match an F element child of an E element
   byChild: (tagName, elms) => {
-    const found = [];
+    const found: Element[] = [];
     for (const parent of elms) {
       parent.children.forEach(elm => {
         if (nameMatch(tagName, elm.tagName)) {
@@ -46,13 +24,15 @@ export const FILTERS = {
 
   // "E + F" => Match an F element immediately preceded by an E element
   byNextSibling: (tagName, elms) => {
-    const found = [];
+    const found: Element[] = [];
     for (const elm of elms) {
-      const nodes = /** @type {Element} */(elm.parentNode).children;
-      const idx = nodes.indexOf(elm);
-      const prev = nodes.at(idx + 1);
-      if (prev && nameMatch(tagName, prev.tagName)) {
-        found.push(prev);
+      if (elm.parentNode) {
+        const nodes = elm.parentNode.children;
+        const idx = nodes.indexOf(elm);
+        const prev = nodes.at(idx + 1);
+        if (prev && nameMatch(tagName, prev.tagName)) {
+          found.push(prev);
+        }
       }
     }
     return found;
@@ -60,17 +40,17 @@ export const FILTERS = {
 
   // "E ~ F" => Match an F element preceded by an E element
   bySibling: (tagName, elms) => {
-    let found = [];
-    const parents = [];
+    let found: Element[] = [];
+    const parents: Element[] = [];
     for (const elm of elms) {
-      const parent = /** @type {Element} */(elm.parentNode);
-      if (parents.indexOf(parent) === -1) {
+      const parent = elm.parentNode;
+      if (parent && !parents.includes(parent)) {
         parents.push(parent);
         const elmIdx = parent.childNodes.indexOf(elm);
         const siblings = parent.children.filter(d => nameMatch(tagName, d.tagName));
         for (let i = 0; i < siblings.length; i++) {
-          const ref = siblings.at(i);
-          if (elmIdx < ref.parentNode.childNodes.indexOf(ref)) {
+          const ref = siblings.at(i)!;
+          if (ref.parentNode && elmIdx < ref.parentNode.childNodes.indexOf(ref)) {
             found = found.concat(
               siblings.slice(i, siblings.length)
             );
@@ -84,9 +64,9 @@ export const FILTERS = {
 
   // "E F" => Match an F element decended from an E element
   byAncestor: (tagName, elms) => {
-    let found = [];
+    let found: Element[] = [];
     let i = 0;
-    let ref;
+    let ref: Element | undefined;
     tagName = tagName || '*';
     while ((ref = elms.at(i++))) {
       found = found.concat(ref.getElementsByTagName(tagName));
@@ -109,7 +89,7 @@ export const FILTERS = {
     const needle = ' ' + className + ' ';
     return elms.filter(d => {
       const haystack = d.getAttribute('class');
-      return xor((haystack && (' ' + haystack + ' ').includes(needle)), not);
+      return xor(!!haystack && (' ' + haystack + ' ').includes(needle), not);
     });
   },
 
@@ -131,12 +111,12 @@ export const FILTERS = {
     const found = [];
     const m = re_nthValue.exec(s);
     if (m) {
-      const interval = +m.at(1) + +(m.at(2) ?? 1);
+      const interval = +(m.at(1) || 0) + +(m.at(2) ?? 1);
       const offset = +((m[3] || '').slice(1));
       for (const elm of elms) {
         let siblings = [ elm ];
         if (elm.parentNode) {
-          siblings = /** @type {Element} */(elm.parentNode).children;
+          siblings = elm.parentNode.children;
           const tn = tagName === '*' ? elm.tagName : tagName;
           if (tn !== '*' && tn) {
             siblings = siblings.filter(n => nameMatch(tn, n.tagName));
@@ -149,7 +129,7 @@ export const FILTERS = {
         const nth = interval
           ? (n % interval === 0 && n / interval >= 0)
           : (n === 0);
-        if (xor(nth, not)) {
+        if (xor(nth, !!not)) {
           found[found.length] = elm;
         }
       }
@@ -179,67 +159,68 @@ export const FILTERS = {
   ),
 
   onlychild: (_, elms, not) => (
-    elms.filter(d => xor(/** @type {Element} */(d.parentNode).children.length === 1, not))
+    elms.filter(d => d.parentNode && xor(d.parentNode.children.length === 1, not))
   ),
 
   lastchild: (_, elms, not) => (
     elms.filter(d => {
-      const siblings = /** @type {Element} */(d.parentNode).children;
+      if (!d.parentNode) { return false; }
+      const siblings = d.parentNode.children;
       return xor(siblings.at(-1) === d, not);
     })
   ),
 
   firstchild: (_, elms, not) => (
-    elms.filter(d => xor(/** @type {Element} */(d.parentNode).children.at(0) === d, not))
+    elms.filter(d => d.parentNode && xor(d.parentNode.children.at(0) === d, not))
   ),
 
   byTagName: (s, elms, not) => (
     elms.filter(d => xor(d.tagName === s, not))
   ),
 
-  attrEqual: (s, elms, not, n) => (
+  attrEqual: (s, elms, not, name) => (
     elms.filter(d => {
-      const a = d.getAttribute(n);
-      return xor(a && a === s, not);
+      const a = name && d.getAttribute(name);
+      return xor(!!a && a === s, not);
     })
   ),
 
-  attrPrefix: (s, elms, not, n) => (
+  attrPrefix: (s, elms, not, name) => (
     elms.filter(d => {
-      const a = d.getAttribute(n);
-      return xor(a && a.startsWith(s), not);
+      const a = name && d.getAttribute(name);
+      return xor(a?.startsWith(s), not);
     })
   ),
 
-  attrSuffix: (s, elms, not, n) => (
+  attrSuffix: (s, elms, not, name) => (
     elms.filter(d => {
-      const a = d.getAttribute(n);
-      return xor(a && a.endsWith(s), not);
+      const a = name && d.getAttribute(name);
+      return xor(a?.endsWith(s), not);
     })
   ),
 
-  attrIncludes: (s, elms, not, n) => (
+  attrIncludes: (s, elms, not, name) => (
     elms.filter(d => {
-      const a = d.getAttribute(n);
-      return xor(a && a.includes(s), not);
+      const a = name && d.getAttribute(name);
+      return xor(a?.includes(s), not);
     })
   ),
 
-  attrDashStart: (s, elms, not, n) => (
+  attrDashStart: (s, elms, not, name) => (
     elms.filter(d => {
-      const a = d.getAttribute(n);
-      return xor(a && (a === s || a.startsWith(s + '-')), not);
+      const a = name && d.getAttribute(name);
+      return xor(!!a && (a === s || a.startsWith(s + '-')), not);
     })
   ),
 
-  attrWord: (s, elms, not, n) => (
+  attrWord: (s, elms, not, name) => (
     elms.filter(d => {
-      const a = d.getAttribute(n);
-      return xor(a && a.split(/\s/).includes(s), not);
+      const a = name && d.getAttribute(name);
+      return xor(a?.split(/\s/).includes(s), not);
     })
   ),
 
-  attr: (_, elms, not, n) => (
-    elms.filter(d => xor(d.hasAttribute(n), not))
+  attr: (_, elms, not, name) => (
+    elms.filter(d => xor(!!name && d.hasAttribute(name), not))
   )
 };

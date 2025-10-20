@@ -6,14 +6,14 @@ const re_className = /^\.([\w-]+)/i;
 const re_attr = /^\[([\w-]+)\s?(?:(.=|=)\s?['"]?(.*?)["']?)?\]/;
 const re_pseudo = /^(:([\w-]+)?(\((.*?\)?)\))?)/;
 
-const ft = {
+const ft: Record<string, string> = {
   '>': 'byChild',
   '+': 'byNextSibling',
   '~': 'bySibling',
   '': 'byAncestor'
 };
 
-const attr = {
+const attr: Record<string, string> = {
   '=':  'attrEqual',
   '^=': 'attrPrefix',
   '$=': 'attrSuffix',
@@ -22,17 +22,34 @@ const attr = {
   '~=': 'attrWord'
 };
 
+export type SelectorPseudo = {
+  name: string,
+  value: string,
+  nth?: boolean,
+  type?: number,
+  last?: number
+};
+
+export type SelectorToken = {
+  tagName: string,
+  operator: string,
+  id: string,
+  className: string[],
+  attr: { name: string, operator: string, value: string }[],
+  pseudo: SelectorPseudo[]
+};
+
 const _cache = new Map();
 
-export function tokenize (selector) {
+export function tokenize (selector: string): SelectorToken[] {
   if (_cache.has(selector)) {
     return _cache.get(selector);
   }
-  const tokens = [];
-  let lastToken;
+  const tokens: SelectorToken[] = [];
+  let lastToken: string;
   while (selector) {
-    const mop = re_operator.exec(selector);
-    const operator = mop ? ft[mop[2]] : '';
+    const mop = re_operator.exec(selector) ?? [];
+    const operator = ft[mop[2]] || '';
     const prePos = mop ? mop[1].length : 0;
     const splitPos = selector.slice(prePos).search(re_split);
     let src = (splitPos > -1)
@@ -40,8 +57,8 @@ export function tokenize (selector) {
       : selector;
     selector = selector.slice(src.length).trim();
     // at this point we have a operator + tokenstring to work with
-    let m;
-    const token = {
+    let m: RegExpExecArray | null;
+    const token: SelectorToken = {
       tagName: '*',
       operator: operator,
       id: '',
@@ -76,8 +93,8 @@ export function tokenize (selector) {
       }
       // pseudo
       else if ((m = re_pseudo.exec(src))) {
-        const ps = { name: m[2], value: m[4] };
-        if (/^nth/.test(ps.name)) {
+        const ps: SelectorPseudo = { name: m[2], value: m[4] };
+        if (ps.name.startsWith('nth')) {
           ps.nth = true;
           if (ps.value === 'even') {
             ps.value = '2n';

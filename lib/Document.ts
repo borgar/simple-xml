@@ -1,10 +1,11 @@
-import { JsonML } from './JsonML.js';
+import { JsonML, type JsonMLElement } from './JsonML.js';
 import { Node } from './Node.js';
 import { Element } from './Element.js';
 import { appendChild } from './appendChild.js';
-import { ELEMENT_NODE, DOCUMENT_NODE } from './constants.js';
+import { DOCUMENT_NODE } from './constants.js';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
+import { isElement } from './isElement.ts';
 
 /**
  * This class describes an XML document.
@@ -12,6 +13,8 @@ import { findAll } from './findAll.js';
  * @augments Node
  */
 export class Document extends Node {
+  root: Element | null = null;
+
   /**
    * Constructs a new Document instance.
    */
@@ -29,20 +32,18 @@ export class Document extends Node {
 
   /**
    * A list containing all child Elements of the current Element.
-   *
-   * @type {Array<Node>}
    */
-  get children () {
-    return this.childNodes.filter(d => d && d.nodeType === ELEMENT_NODE);
+  get children (): Element[] {
+    return this.childNodes.filter(isElement);
   }
 
   /**
    * Return all descendant elements that have the specified tag name.
    *
-   * @param {string} tagName The tag name to filter by.
-   * @returns {Array<Element>} The elements by tag name.
+   * @param tagName The tag name to filter by.
+   * @returns The elements by tag name.
    */
-  getElementsByTagName (tagName) {
+  getElementsByTagName (tagName: string): Element[] {
     if (!tagName) {
       throw new Error('1 argument required, but 0 present.');
     }
@@ -55,7 +56,7 @@ export class Document extends Node {
    * @param {string} selector The CSS selector to filter by.
    * @returns {Element | null} The elements by tag name.
    */
-  querySelector (selector) {
+  querySelector (selector: string): Element | null {
     if (!selector) {
       throw new Error('1 argument required, but 0 present.');
     }
@@ -65,10 +66,10 @@ export class Document extends Node {
   /**
    * Return all descendant elements that match a specified CSS selector.
    *
-   * @param {string} selector The CSS selector to filter by.
-   * @returns {Array<Element>} The elements by tag name.
+   * @param selector The CSS selector to filter by.
+   * @returns The elements by tag name.
    */
-  querySelectorAll (selector) {
+  querySelectorAll (selector: string): Element[] {
     if (!selector) {
       throw new Error('1 argument required, but 0 present.');
     }
@@ -76,7 +77,7 @@ export class Document extends Node {
   }
 
   // overwrites super
-  appendChild (node) {
+  appendChild (node: Element): Element {
     if (this.root) {
       throw new Error('A document may only have one child/root element.');
     }
@@ -88,9 +89,9 @@ export class Document extends Node {
   /**
    * Returns a simple object representation of the node and its descendants.
    *
-   * @returns {Array<any>|null} JsonML representation of the nodes and its subtree.
+   * @returns JsonML representation of the nodes and its subtree.
    */
-  toJS () {
+  toJS (): JsonMLElement | [] {
     return this.root ? JsonML(this.root) : [];
   }
 }

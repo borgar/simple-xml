@@ -3,45 +3,37 @@ import { prettyPrint } from './prettyPrint.js';
 
 /**
  * A class describing a Node.
- *
- * @class Node
  */
 export class Node {
-  /**
-   * Constructs a new Node instance.
-   */
+  /** The node's immediate children. */
+  childNodes: Node[];
+  /** A node type string identifier. */
+  nodeName: string;
+  /** A numerical node type identifier. */
+  nodeType: number;
+  /** The node's parent node. */
+  parentNode: Node | null;
+
+  /** Constructs a new Node instance. */
   constructor () {
-    /**
-     * The node's children.
-     * @type {Array<Node>}
-     */
     this.childNodes = [];
-    /**
-     * A node type string identifier.
-     * @type {string}
-     */
     this.nodeName = '#node';
-    /**
-     * A numerical node type identifier.
-     * @type {number|null}
-     */
-    this.nodeType = null;
-    /**
-     * The node's parent node.
-     * @type {Node|null}
-     */
+    this.nodeType = 0;
     this.parentNode = null;
   }
 
   /**
    * Appends a child node into the current one.
    *
-   * @param {Node} node The new child node
-   * @returns {Node} The same node that was passed in.
+   * @param node The new child node
+   * @returns The same node that was passed in.
    */
-  appendChild (node) {
+  appendChild (node: Node): Node {
     if (!node) {
       throw new Error('1 argument required, but 0 present.');
+    }
+    if (!(node instanceof Node)) {
+      throw new Error('Cannot appendChild: Child is not a node');
     }
     appendChild(this, node);
     return node;
@@ -49,10 +41,8 @@ export class Node {
 
   /**
    * True if xml:space has been set to true for this node or any of its ancestors.
-   *
-   * @type {boolean}
    */
-  get preserveSpace () {
+  get preserveSpace (): boolean {
     if (this.parentNode) {
       return this.parentNode.preserveSpace;
     }
@@ -61,10 +51,8 @@ export class Node {
 
   /**
    * The text content of this node (and its children).
-   *
-   * @type {string}
    */
-  get textContent () {
+  get textContent (): string {
     let s = '';
     for (const child of this.childNodes) {
       s += child.textContent;
@@ -74,9 +62,9 @@ export class Node {
 
   /**
    * Returns a string representation of the node.
-   * @returns {string} A formatted XML source.
+   * @returns A formatted XML source.
    */
-  toString () {
+  toString (): string {
     return prettyPrint(this);
   }
 }

@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 
-/**
- * @ignore
- * @param {string} s A quoted string
- * @param {boolean} [laxValue=false] Are quotes not required to be there?
- * @returns {string} An unquoted string
- */
-export function unquote (s, laxValue = false) {
+export function unquote (s: string, laxValue = false): string {
   if (s && s.length > 1) {
     if (s[0] === '"' && s[s.length - 1] === '"') {
       return s.slice(1, -1);

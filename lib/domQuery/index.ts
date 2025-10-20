@@ -3,33 +3,27 @@
 // work fine with XML now. There may be issues with case-sensitivity,
 // however (as HTML is not but XML is).
 
-import { Document } from '../Document.js';
-import { Element } from '../Element.js';
+import type { Document } from '../Document.js';
+import type { Element } from '../Element.js';
 import { matchToken } from './matchToken.js';
-import { tokenize } from './tokenize.js';
+import { tokenize, type SelectorToken } from './tokenize.js';
 
-/**
- * @ignore
- * @param {Element | Document} contextNode The ancestor node to search from
- * @param {string} selector The CSS selector to filter by
- * @returns {Array<Element>} A list of Elements matching selector
- */
-export function domQuery (contextNode, selector) {
+export function domQuery (contextNode: Element | Document, selector: string): Element[] {
   // shortcut single tag
-  if (/^([a-z1-6]+|\*)$/i.test(selector)) {
+  if (selector === '*' || /^[a-z1-6]+$/i.test(selector)) {
     return contextNode.getElementsByTagName(selector);
   }
 
-  let elements = [];
+  let elements: Element[] = [];
   const selectorBits = selector.trim().split(/ *, */);
   for (const s of selectorBits) {
-    let elms = [ contextNode ];
+    let elms = [ contextNode as Element ];
     if (s) {
-      const tokens = tokenize(s);
+      const tokens: SelectorToken[] = tokenize(s);
       let j = 0;
-      let t;
+      let t: SelectorToken;
       while ((t = tokens[j++]) && elms.length) {
-        elms = matchToken(t, 0, elms);
+        elms = matchToken(t, false, elms);
       }
     }
     elements = elements.concat(elms);

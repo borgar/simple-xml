@@ -1,4 +1,4 @@
-const NAMED = {
+const NAMED: Record<string, string> = {
   lt: '<',
   gt: '>',
   amp: '&',
@@ -17,7 +17,7 @@ const UC_F = 70;
 const UC_X = 88;
 
 // Fast XML unescape for JS strings (XML 1.0 named + numeric refs)
-export function unescape (str) {
+export function unescape (str: string): string {
   const first = str.indexOf('&');
   if (first === -1) {
     return str;

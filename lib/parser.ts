@@ -13,7 +13,9 @@ const DEFAULTOPTIONS = {
   laxAttr: false
 };
 
-function isWS (ch) {
+const NON_ELEMENT = new Element('#');
+
+function isWS (ch: string): boolean {
   return (
     ch === ' ' ||  // #x20
     ch === '\t' || // #x9
@@ -22,7 +24,7 @@ function isWS (ch) {
   );
 }
 
-function isNotNameChar (ch) {
+function isNotNameChar (ch: string): boolean {
   return (
     ch === ' ' ||  // #x20
     ch === '\t' || // #x9
@@ -36,7 +38,7 @@ function isNotNameChar (ch) {
   );
 }
 
-function isNotCloseChar (ch) {
+function isNotCloseChar (ch: string): boolean {
   return (
     ch === ' ' ||  // #x20
     ch === '\t' || // #x9
@@ -51,13 +53,16 @@ const CLOSE_BRACE = 62; // ">"
 const QUESTION = 63; // "?"
 const SLASH = 47; // "/"
 
+type ParserFunction = (s: string, pos?: number) => null | string[];
+type ParseHandler = (...args: string[]) => boolean;
+
 // /^[ \t\r\n]+/
-const fnWS = (s, pos = 0) => {
+const fnWS: ParserFunction = (s: string, pos = 0) => {
   let i = pos;
   let c;
   do {
     c = s.at(i);
-    if (!isWS(c)) {
+    if (!c || !isWS(c)) {
       break;
     }
     i++;
@@ -66,7 +71,7 @@ const fnWS = (s, pos = 0) => {
 };
 
 // /^<!--([^\0]+?)-->/
-const fnComment = (s, pos = 0) => {
+const fnComment: ParserFunction = (s, pos = 0) => {
   if (s.startsWith('<!--', pos)) {
     const max = s.length - 2;
     let i = pos + 4;
@@ -81,8 +86,8 @@ const fnComment = (s, pos = 0) => {
   return null;
 };
 
-// /^<!\[CDATA\[([^\0]*?)\]\]>/;
-const fnCData = (s, pos = 0) => {
+// /^<!\[CDATA\[([^\0]*?)\]\]>/
+const fnCData: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.startsWith('<![CDATA[', pos)) {
     const max = s.length - 3;
     let i = pos + 9;
@@ -97,8 +102,8 @@ const fnCData = (s, pos = 0) => {
   return null;
 };
 
-// /^<\?([^>]*)\?>/;
-const fnInstr = (s, pos = 0) => {
+// /^<\?([^>]*)\?>/
+const fnInstr: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.charCodeAt(pos + 1) === QUESTION) {
     const max = s.length - 2;
     let i = pos + 2;
@@ -113,8 +118,8 @@ const fnInstr = (s, pos = 0) => {
   return null;
 };
 
-// /^<([^!>\s/#&]+)(\s[^>]*?)?(\/?)>/;
-const fnTagStrict = (s, startIndex = 0) => {
+// /^<([^!>\s/#&]+)(\s[^>]*?)?(\/?)>/
+const fnTag: ParserFunction = (s, startIndex = 0) => {
   const n = s.length;
   let i = startIndex;
 
@@ -172,8 +177,8 @@ const fnTagStrict = (s, startIndex = 0) => {
   ];
 };
 
-// /^<\/([^>\s]+)\s*>/;
-const fnEndTag = (s, pos = 0) => {
+// /^<\/([^>\s]+)\s*>/
+const fnEndTag: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.charCodeAt(pos + 1) === SLASH) {
     let i = pos + 2;
     const n = s.length - 1;
@@ -194,8 +199,8 @@ const fnEndTag = (s, pos = 0) => {
   return null;
 };
 
-// const reDecl = /^<\?xml(?: ([a-z0-9 =."'-]*?))?\?>/i;
-const fnDecl = (s, pos = 0) => {
+// /^<\?xml(?: ([a-z0-9 =."'-]*?))?\?>/i
+const fnDecl: ParserFunction = (s, pos = 0) => {
   if (s.startsWith('<?xml', pos)) {
     return /^<\?xml(?: ([a-z0-9 =."'-]*?))?\?>/i.exec(s.slice(pos));
   }
@@ -203,56 +208,41 @@ const fnDecl = (s, pos = 0) => {
 };
 
 // /^<!([^->\s/[]*)(\s[^>]+?)?(\/?)>/
-const fnDocType = (s, pos = 0) => {
+const fnDocType: ParserFunction = (s, pos = 0) => {
   if (s.startsWith('<!', pos)) {
     return /^<!([^->\s/[]*)(\s[^>]+?)?(\/?)>/.exec(s.slice(pos));
   }
   return null;
 };
 
-/**
- * @ignore
- * @param {number} pos The position
- * @param {string} src The source
- * @returns {number} { description_of_the_return_value }
- */
-function posToLine (pos, src) {
+function posToLine (pos: number, src: string): number {
   return src.slice(0, pos).replace(/[^\n]+/g, '').length;
 }
 
 /**
- * @callback ParseHandler
- * @param {...string} args
- * @returns {boolean}
- * @ignore
- */
-
-/**
  * Parse an XML source and return a Node tree.
  *
- * @param {string} source The XML source to parse.
- * @param {object} [options={}] Parsing options.
- * @param {boolean} [options.emptyDoc=false] Permit "rootless" documents.
- * @param {boolean} [options.laxAttr=false] Permit unquoted attributes (`<node foo=bar />`).
- * @returns {Document} A DOM representing the XML node tree.
+ * @param source The XML source to parse.
+ * @param [options={}] Parsing options.
+ * @param [options.emptyDoc=false] Permit "rootless" documents.
+ * @param [options.laxAttr=false] Permit unquoted attributes (`<node foo=bar />`).
+ * @returns A DOM representing the XML node tree.
  */
-export function parseXML (source, options = DEFAULTOPTIONS) {
+export function parseXML (
+  source: string,
+  options: {
+    emptyDoc?: boolean;
+    laxAttr?: boolean;
+  } = DEFAULTOPTIONS
+): Document {
   // 2.11: before parsing, translate both the two-character sequence
   // \r\n and any \r that is not followed by \n to a single \n
   const xml = removeCR(source);
 
   let pos = 0;
-  /** @type {Element|null} */
-  let root = null;
-  let current = null;
+  let root = NON_ELEMENT;
 
-  /**
-   * @ignore
-   * @param {string} char The character to look for
-   * @param {ParseHandler} [parse] A handler for the match
-   * @returns {boolean} Was a match found?
-   */
-  function scanUntil (char, parse) {
+  function scanUntil (char: string, parse: ParseHandler): boolean {
     const s = pos;
     const idx = xml.indexOf(char, pos);
     if (idx > -1) {
@@ -263,13 +253,7 @@ export function parseXML (source, options = DEFAULTOPTIONS) {
     return false;
   }
 
-  /**
-   * @ignore
-   * @param {(s: string, pos?: number) => null | string[]} fn An expression matcher
-   * @param {ParseHandler} [parse] A handler for the match
-   * @returns {boolean} Was a match found?
-   */
-  function maybeMatchFn (fn, parse) {
+  function maybeMatchFn (fn: ParserFunction, parse?: ParseHandler): boolean {
     const m = fn(xml, pos);
     if (m) {
       pos += m[0].length;
@@ -309,7 +293,7 @@ export function parseXML (source, options = DEFAULTOPTIONS) {
     if (!attr.version) {
       throw new Error('XML missing version');
     }
-    return null;
+    return false;
   });
 
   // optional: Comment | PI <?xml...?> | WS
@@ -318,19 +302,19 @@ export function parseXML (source, options = DEFAULTOPTIONS) {
   scanIgnorables();
 
   // root tag
-  // maybeMatch(reTag, (_, t, a, c) => {
-  maybeMatchFn(fnTagStrict, (_, t, a, c) => {
-    return !!(root = new Element(t, parseAttr(a, options.laxAttr), !!c));
+  maybeMatchFn(fnTag, (_, t, a, c) => {
+    root = new Element(t, parseAttr(a, options.laxAttr), !!c);
+    return true;
   });
 
-  if (!root && !options.emptyDoc) {
+  if (root === NON_ELEMENT && !options.emptyDoc) {
     throw new Error('no root tag found');
   }
 
-  current = root;
+  let current: Element | null = root;
 
   // root tag content
-  if (root && !root.closed) {
+  if (root !== NON_ELEMENT && !root.closed) {
     let some = false;
     let lastPos = pos;
     do {
@@ -341,27 +325,30 @@ export function parseXML (source, options = DEFAULTOPTIONS) {
         maybeMatchFn(fnInstr)
         ||
         maybeMatchFn(fnCData, (_, c) => (
-          !!current.appendChild(new CDataNode(c))
+          !!current?.appendChild(new CDataNode(c))
         ))
         ||
         maybeMatchFn(fnEndTag, (_, t) => {
           // the thing being closed must be the parent
-          if (t.trim() === current.fullName) {
+          if (t.trim() === current?.fullName) {
             current = current.parentNode;
             return true;
           }
-          const msg = `Expected </${current.fullName}> got </${t}> in line ${posToLine(pos, xml)}`;
+          const msg = `Expected </${current?.fullName}> got </${t}> in line ${posToLine(pos, xml)}`;
           throw new Error(msg);
         })
         ||
-        maybeMatchFn(fnTagStrict, (_, t, a, c) => {
-          const node = current.appendChild(new Element(t, parseAttr(a, options.laxAttr), !!c));
-          if (!node.closed) { current = node; }
+        maybeMatchFn(fnTag, (_, t, a, c) => {
+          const elm = new Element(t, parseAttr(a, options.laxAttr), !!c);
+          current?.appendChild(elm);
+          if (!elm.closed) {
+            current = elm;
+          }
           return true;
         })
         ||
         scanUntil('<', m => {
-          current.appendChild(new TextNode(unescape(m)));
+          current?.appendChild(new TextNode(unescape(m)));
           return true;
         })
       );
@@ -379,12 +366,14 @@ export function parseXML (source, options = DEFAULTOPTIONS) {
   if (xml.slice(pos)) {
     throw new Error('DATA outside root node');
   }
+
   // root should have been closed
-  if (root && !root.closed && current !== null) {
+  if (root !== NON_ELEMENT && !root.closed && current !== null) {
     throw new Error(`Expected </${root.tagName}> got EOF`);
   }
+
   const doc = new Document();
-  if (root) {
+  if (root !== NON_ELEMENT) {
     doc.appendChild(root);
   }
   return doc;
