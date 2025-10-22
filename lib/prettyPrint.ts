@@ -1,50 +1,49 @@
-import { Node } from './Node.js';
+import type { CDataNode } from './CDataNode.ts';
+import type { Document } from './Document.ts';
+import type { Node } from './Node.js';
+import type { TextNode } from './TextNode.ts';
 import { CDATA_SECTION_NODE, DOCUMENT_NODE, ELEMENT_NODE, TEXT_NODE } from './constants.js';
 import { escape } from './escape.js';
+import { isElement } from './isElement.ts';
 
-function printAttributes (node) {
+function printAttributes (node: Node): string {
   let attrList = '';
-  if ('attr' in node) {
-    for (const [ key, val ] of Object.entries(node.attr)) {
+  if (isElement(node)) {
+    const attr = node.attr;
+    for (const [ key, val ] of Object.entries(attr)) {
       attrList += ` ${key}="${escape(val)}"`;
     }
   }
   return attrList;
 }
 
-function printTextNode (node) {
+function printTextNode (node: TextNode): string {
   return escape(node.value);
 }
 
-function printCData (node) {
+function printCData (node: CDataNode) {
   return `<![CDATA[${node.value.replace(/]]>/g, ']]&gt;')}]]>`;
 }
 
-function printDocument (node) {
+function printDocument (node: Node): string {
   return node.childNodes
     .map(n => prettyPrint(n))
     .join('\n');
 }
 
-/**
- * @ignore
- * @param {Node} node The node to start printing at
- * @param {string} [indent=''] The indent of the output
- * @returns {string} XML source
- */
-export function prettyPrint (node, indent = '') {
+export function prettyPrint (node: Node, indent: string = ''): string {
   const { preserveSpace } = node;
   if (node.nodeType === DOCUMENT_NODE) {
-    return printDocument(node);
+    return printDocument(node as Document);
   }
   else if (node.nodeType === CDATA_SECTION_NODE) {
-    return printCData(node);
+    return printCData(node as CDataNode);
   }
   else if (node.nodeType === TEXT_NODE) {
-    return printTextNode(node);
+    return printTextNode(node as TextNode);
   }
-  else if (node.nodeType === ELEMENT_NODE) {
-    const tagName = 'tagName' in node ? node.tagName : node.nodeName;
+  else if (isElement(node)) {
+    const tagName = node.tagName;
     const { childNodes } = node;
     let children = '';
 
@@ -57,7 +56,7 @@ export function prettyPrint (node, indent = '') {
       children = prettyPrint(childNodes[0]);
     }
     else if (childNodes.every(d => d.nodeType === TEXT_NODE)) {
-      children = childNodes.map(printTextNode).join('');
+      children = (childNodes as TextNode[]).map(printTextNode).join('');
     }
     else {
       let lastNodeType = 0;

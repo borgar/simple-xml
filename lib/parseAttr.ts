@@ -1,10 +1,6 @@
-/* eslint-disable jsdoc/require-returns-description */
-/* eslint-disable jsdoc/require-param-description */
-/* eslint-disable jsdoc/no-undefined-types */
-/* eslint-disable no-loop-func, operator-linebreak */
 import { unescape } from './unescape.js';
 
-function isWS (ch) {
+function isWS (ch: string): boolean {
   return (
     ch === ' ' ||  // #x20
     ch === '\t' || // #x9
@@ -13,7 +9,7 @@ function isWS (ch) {
   );
 }
 
-function isAttrChar (ch) {
+function isAttrChar (ch: string): boolean {
   return (
     ch === ' ' ||  // #x20
     ch === '\t' || // #x9
@@ -24,15 +20,15 @@ function isAttrChar (ch) {
   );
 }
 
-function isQuoteSingle (ch) {
+function isQuoteSingle (ch: string): boolean {
   return ch === "'";
 }
 
-function isQuoteDouble (ch) {
+function isQuoteDouble (ch: string): boolean {
   return ch === '"';
 }
 
-function skipWS (s, i) {
+function skipWS (s: string, i: number): number {
   let j = i;
   const n = s.length;
   while (j < n && isWS(s[j])) {
@@ -41,15 +37,9 @@ function skipWS (s, i) {
   return j - i;
 }
 
-/**
- * @ignore
- * @param {string} s
- * @param {boolean} [laxAttr=false]
- * @returns {Record<string, string>}
- */
-export function parseAttr (s, laxAttr = false) {
+export function parseAttr (s: string, laxAttr = false): Record<string, string> {
   let i = 0;
-  const r = /** @type {Record<string, string>} */({});
+  const r: Record<string, string> = {};
   const n = s.length;
 
   if (!s) {
@@ -95,7 +85,7 @@ export function parseAttr (s, laxAttr = false) {
     i += skipWS(s, i);
 
     // match value
-    let fnSeek;
+    let fnSeek: (s: string) => boolean;
     if (s[i] === '"') {
       fnSeek = isQuoteDouble;
       i++;
@@ -124,7 +114,8 @@ export function parseAttr (s, laxAttr = false) {
 
     if (endValue === -1) {
       if (laxAttr) {
-        r[s.slice(nameStart, nameEnd)] = unescape(s.slice(startValue, n));
+        const key = s.slice(nameStart, nameEnd);
+        r[key] = unescape(s.slice(startValue, n));
         break;
       }
       throw new Error('Attribute error: unterminated value');

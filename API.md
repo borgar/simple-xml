@@ -1,803 +1,1133 @@
-# _Simple-xml_ API
 
-**Classes**
+<a name="readmemd"></a>
 
-- [CDataNode( _\[value\]_ )](#CDataNode)
-  - [.constructor( _\[value\]_ )](#CDataNode.constructor)
-  - [.appendChild( node )](#CDataNode.appendChild)
-  - [.childNodes](#CDataNode.childNodes)
-  - [.nodeName](#CDataNode.nodeName)
-  - [.nodeType](#CDataNode.nodeType)
-  - [.parentNode](#CDataNode.parentNode)
-  - [.preserveSpace](#CDataNode.preserveSpace)
-  - [.textContent](#CDataNode.textContent)
-  - [.toString()](#CDataNode.toString)
-  - [.value](#CDataNode.value)
-- [Document()](#Document)
-  - [.appendChild( node )](#Document.appendChild)
-  - [.childNodes](#Document.childNodes)
-  - [.children()](#Document.children)
-  - [.getElementsByTagName( tagName )](#Document.getElementsByTagName)
-  - [.nodeName](#Document.nodeName)
-  - [.nodeType](#Document.nodeType)
-  - [.parentNode](#Document.parentNode)
-  - [.preserveSpace](#Document.preserveSpace)
-  - [.querySelector( selector )](#Document.querySelector)
-  - [.querySelectorAll( selector )](#Document.querySelectorAll)
-  - [.textContent](#Document.textContent)
-  - [.toJS()](#Document.toJS)
-  - [.toString()](#Document.toString)
-- [Element( tagName, _\[attr, closed\]_ )](#Element)
-  - [.constructor( tagName, _\[attr, closed\]_ )](#Element.constructor)
-  - [.appendChild( node )](#Element.appendChild)
-  - [.attr](#Element.attr)
-  - [.childNodes](#Element.childNodes)
-  - [.children()](#Element.children)
-  - [.closed](#Element.closed)
-  - [.fullName](#Element.fullName)
-  - [.getAttribute( name )](#Element.getAttribute)
-  - [.getElementsByTagName( tagName )](#Element.getElementsByTagName)
-  - [.hasAttribute( name )](#Element.hasAttribute)
-  - [.nodeName](#Element.nodeName)
-  - [.nodeType](#Element.nodeType)
-  - [.ns](#Element.ns)
-  - [.parentNode](#Element.parentNode)
-  - [.preserveSpace](#Element.preserveSpace)
-  - [.querySelector( selector )](#Element.querySelector)
-  - [.querySelectorAll( selector )](#Element.querySelectorAll)
-  - [.removeAttribute( name )](#Element.removeAttribute)
-  - [.setAttribute( name, value )](#Element.setAttribute)
-  - [.tagName](#Element.tagName)
-  - [.textContent](#Element.textContent)
-  - [.toJS()](#Element.toJS)
-  - [.toString()](#Element.toString)
-- [Node()](#Node)
-  - [.constructor()](#Node.constructor)
-  - [.appendChild( node )](#Node.appendChild)
-  - [.childNodes](#Node.childNodes)
-  - [.nodeName](#Node.nodeName)
-  - [.nodeType](#Node.nodeType)
-  - [.parentNode](#Node.parentNode)
-  - [.preserveSpace()](#Node.preserveSpace)
-  - [.textContent()](#Node.textContent)
-  - [.toString()](#Node.toString)
-- [TextNode( _\[value\]_ )](#TextNode)
-  - [.constructor( _\[value\]_ )](#TextNode.constructor)
-  - [.appendChild( node )](#TextNode.appendChild)
-  - [.childNodes](#TextNode.childNodes)
-  - [.nodeName](#TextNode.nodeName)
-  - [.nodeType](#TextNode.nodeType)
-  - [.parentNode](#TextNode.parentNode)
-  - [.preserveSpace](#TextNode.preserveSpace)
-  - [.textContent](#TextNode.textContent)
-  - [.toString()](#TextNode.toString)
-  - [.value](#TextNode.value)
-
-**Function**
-
-- [parseXML( source, _\[options\]_ )](#parseXML)
-
-**Constants**
-
-- [ATTRIBUTE_NODE](#ATTRIBUTE_NODE)
-- [CDATA_SECTION_NODE](#CDATA_SECTION_NODE)
-- [COMMENT_NODE](#COMMENT_NODE)
-- [DOCUMENT_FRAGMENT_NODE](#DOCUMENT_FRAGMENT_NODE)
-- [DOCUMENT_NODE](#DOCUMENT_NODE)
-- [DOCUMENT_TYPE_NODE](#DOCUMENT_TYPE_NODE)
-- [ELEMENT_NODE](#ELEMENT_NODE)
-- [ENTITY_NODE](#ENTITY_NODE)
-- [ENTITY_REFERENCE_NODE](#ENTITY_REFERENCE_NODE)
-- [NOTATION_NODE](#NOTATION_NODE)
-- [PROCESSING_INSTRUCTION_NODE](#PROCESSING_INSTRUCTION_NODE)
-- [TEXT_NODE](#TEXT_NODE)
+# @borgar/simple-xml
 
 ## Classes
 
-### <a id="CDataNode" href="#CDataNode">#</a> CDataNode( _[value = `""`]_ ) extends [`Node`](#Node)
+- [CDataNode](#classescdatanodemd)
+- [Document](#classesdocumentmd)
+- [Element](#classeselementmd)
+- [Node](#classesnodemd)
+- [TextNode](#classestextnodemd)
+
+## Type Aliases
+
+- [JsonMLAttr](#type-aliasesjsonmlattrmd)
+- [JsonMLElement](#type-aliasesjsonmlelementmd)
+
+## Variables
+
+- [ATTRIBUTE\_NODE](#variablesattribute_nodemd)
+- [CDATA\_SECTION\_NODE](#variablescdata_section_nodemd)
+- [COMMENT\_NODE](#variablescomment_nodemd)
+- [DOCUMENT\_FRAGMENT\_NODE](#variablesdocument_fragment_nodemd)
+- [DOCUMENT\_NODE](#variablesdocument_nodemd)
+- [DOCUMENT\_TYPE\_NODE](#variablesdocument_type_nodemd)
+- [ELEMENT\_NODE](#variableselement_nodemd)
+- [ENTITY\_NODE](#variablesentity_nodemd)
+- [ENTITY\_REFERENCE\_NODE](#variablesentity_reference_nodemd)
+- [NOTATION\_NODE](#variablesnotation_nodemd)
+- [PROCESSING\_INSTRUCTION\_NODE](#variablesprocessing_instruction_nodemd)
+- [TEXT\_NODE](#variablestext_nodemd)
+
+## Functions
+
+- [parseXML](#functionsparsexmlmd)
+
+
+<a name="classescdatanodemd"></a>
+
+# CDataNode
 
 A class describing an CDataNode.
 
----
+## Extends
 
-#### <a id="CDataNode.constructor" href="#CDataNode.constructor">#</a> .constructor( _[value = `""`]_ )
+- [`Node`](#classesnodemd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new CDataNode(value?: string): CDataNode;
+```
 
 Constructs a new CDataNode instance.
 
-##### Parameters
+#### Parameters
 
-| Name    | Type     | Default | Description           |
-| ------- | -------- | ------- | --------------------- |
-| [value] | `string` | `""`    | The data for the node |
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `value?` | `string` | `''` | The data for the node |
 
----
+#### Returns
 
-#### <a id="CDataNode.appendChild" href="#CDataNode.appendChild">#</a> .appendChild( node ) ⇒ [`Node`](#Node)
+`CDataNode`
 
-Appends a child node into the current one.
+#### Overrides
 
-##### Parameters
+[`Node`](#classesnodemd).[`constructor`](#constructor)
 
-| Name | Type            | Description        |
-| ---- | --------------- | ------------------ |
-| node | [`Node`](#Node) | The new child node |
+## Properties
 
-##### Returns
+| Property | Type | Default value | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
+| <a id="value"></a> `value` | `string` | `undefined` | The nodes data value. | - |
 
-[`Node`](#Node) – The same node that was passed in.
+## Accessors
 
----
+### preserveSpace
 
-#### <a id="CDataNode.childNodes" href="#CDataNode.childNodes">#</a> .childNodes
+#### Get Signature
 
-The node's children.
-
----
-
-#### <a id="CDataNode.nodeName" href="#CDataNode.nodeName">#</a> .nodeName
-
-A node type string identifier.
-
----
-
-#### <a id="CDataNode.nodeType" href="#CDataNode.nodeType">#</a> .nodeType
-
-A numerical node type identifier.
-
----
-
-#### <a id="CDataNode.parentNode" href="#CDataNode.parentNode">#</a> .parentNode
-
-The node's parent node.
-
----
-
-#### <a id="CDataNode.preserveSpace" href="#CDataNode.preserveSpace">#</a> .preserveSpace
+```ts
+get preserveSpace(): boolean;
+```
 
 True if xml:space has been set to true for this node or any of its ancestors.
 
----
+##### Returns
 
-#### <a id="CDataNode.textContent" href="#CDataNode.textContent">#</a> .textContent
+`boolean`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
+
+***
+
+### textContent
+
+#### Get Signature
+
+```ts
+get textContent(): string;
+```
 
 The text content of this node (and its children).
 
----
+##### Returns
 
-#### <a id="CDataNode.toString" href="#CDataNode.toString">#</a> .toString() ⇒ `string`
+`string`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`textContent`](#textcontent)
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild(node: Node): Node;
+```
+
+Appends a child node into the current one.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | [`Node`](#classesnodemd) | The new child node |
+
+#### Returns
+
+[`Node`](#classesnodemd)
+
+The same node that was passed in.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
 
 Returns a string representation of the node.
 
-##### Returns
+#### Returns
 
-`string` – A formatted XML source.
+`string`
 
----
+A formatted XML source.
 
-#### <a id="CDataNode.value" href="#CDataNode.value">#</a> .value
+#### Inherited from
 
-The nodes data value.
+[`Node`](#classesnodemd).[`toString`](#tostring)
 
----
 
-### <a id="Document" href="#Document">#</a> Document() extends [`Node`](#Node)
+<a name="classesdocumentmd"></a>
+
+# Document
 
 This class describes an XML document.
 
----
+## Extends
 
-#### <a id="Document.appendChild" href="#Document.appendChild">#</a> .appendChild( node ) ⇒ [`Node`](#Node)
+- [`Node`](#classesnodemd)
 
-Appends a child node into the current one.
+## Constructors
 
-##### Parameters
+### Constructor
 
-| Name | Type            | Description        |
-| ---- | --------------- | ------------------ |
-| node | [`Node`](#Node) | The new child node |
+```ts
+new Document(): Document;
+```
 
-##### Returns
+Constructs a new Document instance.
 
-[`Node`](#Node) – The same node that was passed in.
+#### Returns
 
----
+`Document`
 
-#### <a id="Document.childNodes" href="#Document.childNodes">#</a> .childNodes
+#### Overrides
 
-The node's children.
+[`Node`](#classesnodemd).[`constructor`](#constructor)
 
----
+## Properties
 
-#### <a id="Document.children" href="#Document.children">#</a> .children() ⇒ `void`
+| Property | Type | Default value | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
+| <a id="root"></a> `root` | [`Element`](#classeselementmd) \| `null` | `null` | - | - |
+
+## Accessors
+
+### children
+
+#### Get Signature
+
+```ts
+get children(): Element[];
+```
 
 A list containing all child Elements of the current Element.
 
----
-
-#### <a id="Document.getElementsByTagName" href="#Document.getElementsByTagName">#</a> .getElementsByTagName( tagName ) ⇒ `Array<Element>`
-
-Return all descendant elements that have the specified tag name.
-
-##### Parameters
-
-| Name    | Type     | Description                |
-| ------- | -------- | -------------------------- |
-| tagName | `string` | The tag name to filter by. |
-
 ##### Returns
 
-`Array<Element>` – The elements by tag name.
+[`Element`](#classeselementmd)[]
 
----
+***
 
-#### <a id="Document.nodeName" href="#Document.nodeName">#</a> .nodeName
+### preserveSpace
 
-A node type string identifier.
+#### Get Signature
 
----
-
-#### <a id="Document.nodeType" href="#Document.nodeType">#</a> .nodeType
-
-A numerical node type identifier.
-
----
-
-#### <a id="Document.parentNode" href="#Document.parentNode">#</a> .parentNode
-
-The node's parent node.
-
----
-
-#### <a id="Document.preserveSpace" href="#Document.preserveSpace">#</a> .preserveSpace
+```ts
+get preserveSpace(): boolean;
+```
 
 True if xml:space has been set to true for this node or any of its ancestors.
 
----
-
-#### <a id="Document.querySelector" href="#Document.querySelector">#</a> .querySelector( selector ) ⇒ [`Element`](#Element) | `null`
-
-Return the first descendant element that match a specified CSS selector.
-
-##### Parameters
-
-| Name     | Type     | Description                    |
-| -------- | -------- | ------------------------------ |
-| selector | `string` | The CSS selector to filter by. |
-
 ##### Returns
 
-[`Element`](#Element) | `null` – The elements by tag name.
+`boolean`
 
----
+#### Inherited from
 
-#### <a id="Document.querySelectorAll" href="#Document.querySelectorAll">#</a> .querySelectorAll( selector ) ⇒ `Array<Element>`
+[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
 
-Return all descendant elements that match a specified CSS selector.
+***
 
-##### Parameters
+### textContent
 
-| Name     | Type     | Description                    |
-| -------- | -------- | ------------------------------ |
-| selector | `string` | The CSS selector to filter by. |
+#### Get Signature
 
-##### Returns
-
-`Array<Element>` – The elements by tag name.
-
----
-
-#### <a id="Document.textContent" href="#Document.textContent">#</a> .textContent
+```ts
+get textContent(): string;
+```
 
 The text content of this node (and its children).
 
----
+##### Returns
 
-#### <a id="Document.toJS" href="#Document.toJS">#</a> .toJS() ⇒ `Array<any>` | `null`
+`string`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`textContent`](#textcontent)
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild(node: Element): Element;
+```
+
+Appends a child node into the current one.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | [`Element`](#classeselementmd) | The new child node |
+
+#### Returns
+
+[`Element`](#classeselementmd)
+
+The same node that was passed in.
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### getElementsByTagName()
+
+```ts
+getElementsByTagName(tagName: string): Element[];
+```
+
+Return all descendant elements that have the specified tag name.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `tagName` | `string` | The tag name to filter by. |
+
+#### Returns
+
+[`Element`](#classeselementmd)[]
+
+The elements by tag name.
+
+***
+
+### querySelector()
+
+```ts
+querySelector(selector: string): Element | null;
+```
+
+Return the first descendant element that match a specified CSS selector.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `selector` | `string` | The CSS selector to filter by. |
+
+#### Returns
+
+[`Element`](#classeselementmd) \| `null`
+
+The elements by tag name.
+
+***
+
+### querySelectorAll()
+
+```ts
+querySelectorAll(selector: string): Element[];
+```
+
+Return all descendant elements that match a specified CSS selector.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `selector` | `string` | The CSS selector to filter by. |
+
+#### Returns
+
+[`Element`](#classeselementmd)[]
+
+The elements by tag name.
+
+***
+
+### toJS()
+
+```ts
+toJS(): [] | JsonMLElement;
+```
 
 Returns a simple object representation of the node and its descendants.
 
-##### Returns
+#### Returns
 
-`Array<any>` | `null` – JsonML representation of the nodes and its subtree.
+\[\] \| [`JsonMLElement`](#type-aliasesjsonmlelementmd)
 
----
+JsonML representation of the nodes and its subtree.
 
-#### <a id="Document.toString" href="#Document.toString">#</a> .toString() ⇒ `string`
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
 
 Returns a string representation of the node.
 
-##### Returns
+#### Returns
 
-`string` – A formatted XML source.
+`string`
 
----
+A formatted XML source.
 
-### <a id="Element" href="#Element">#</a> Element( tagName, _[attr = `{}`, closed]_ ) extends [`Node`](#Node)
+#### Inherited from
+
+[`Node`](#classesnodemd).[`toString`](#tostring)
+
+
+<a name="classeselementmd"></a>
+
+# Element
 
 A class describing an Element.
 
----
+## Extends
 
-#### <a id="Element.constructor" href="#Element.constructor">#</a> .constructor( tagName, _[attr = `{}`, closed]_ )
+- [`Node`](#classesnodemd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new Element(
+   tagName: string, 
+   attr?: Record<string, string>, 
+   closed?: boolean): Element;
+```
 
 Constructs a new Element instance.
 
-##### Parameters
+#### Parameters
 
-| Name     | Type      | Default | Description                              |
-| -------- | --------- | ------- | ---------------------------------------- |
-| tagName  | `string`  |         | The tag name of the node.                |
-| [attr]   | `object`  | `{}`    | A collection of attributes to assign.    |
-| [closed] | `boolean` | `false` | Was the element "self-closed" when read. |
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `tagName` | `string` | `undefined` | The tag name of the node. |
+| `attr?` | `Record`\<`string`, `string`\> | `{}` | A collection of attributes to assign. |
+| `closed?` | `boolean` | `false` | Was the element "self-closed" when read. |
 
----
+#### Returns
 
-#### <a id="Element.appendChild" href="#Element.appendChild">#</a> .appendChild( node ) ⇒ [`Node`](#Node)
+`Element`
 
-Appends a child node into the current one.
+#### Overrides
 
-##### Parameters
+[`Node`](#classesnodemd).[`constructor`](#constructor)
 
-| Name | Type            | Description        |
-| ---- | --------------- | ------------------ |
-| node | [`Node`](#Node) | The new child node |
+## Properties
 
-##### Returns
+| Property | Type | Default value | Description | Overrides | Inherited from |
+| ------ | ------ | ------ | ------ | ------ | ------ |
+| <a id="attr"></a> `attr` | `Record`\<`string`, `string`\> | `undefined` | An object of attributes assigned to this element. | - | - |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | - | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="closed"></a> `closed` | `boolean` | `undefined` | A state representing if the element was "self-closed" when read. | - | - |
+| <a id="fullname"></a> `fullName` | `string` | `undefined` | The full name of the tag for the given element, including a namespace prefix. | - | - |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | - | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | - | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
+| <a id="ns"></a> `ns` | `string` | `undefined` | The namespace prefix of the element, or null if no prefix is specified. | - | - |
+| <a id="parentnode"></a> `parentNode` | `Element` \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) | - |
+| <a id="tagname"></a> `tagName` | `string` | `undefined` | The name of the tag for the given element, excluding any namespace prefix. | - | - |
 
-[`Node`](#Node) – The same node that was passed in.
+## Accessors
 
----
+### children
 
-#### <a id="Element.attr" href="#Element.attr">#</a> .attr
+#### Get Signature
 
-An object of attributes assigned to this element.
-
----
-
-#### <a id="Element.childNodes" href="#Element.childNodes">#</a> .childNodes
-
-The node's children.
-
----
-
-#### <a id="Element.children" href="#Element.children">#</a> .children() ⇒ `void`
+```ts
+get children(): Element[];
+```
 
 A list containing all child Elements of the current Element.
 
----
+##### Returns
 
-#### <a id="Element.closed" href="#Element.closed">#</a> .closed
+`Element`[]
 
-A state representing if the element was "self-closed" when read.
+***
 
----
+### preserveSpace
 
-#### <a id="Element.fullName" href="#Element.fullName">#</a> .fullName
+#### Get Signature
 
-The full name of the tag for the given element, including a namespace prefix.
+```ts
+get preserveSpace(): boolean;
+```
 
----
+True if xml:space has been set to true for this node or any of its ancestors.
 
-#### <a id="Element.getAttribute" href="#Element.getAttribute">#</a> .getAttribute( name ) ⇒ `string` | `null`
+##### Returns
+
+`boolean`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
+
+***
+
+### textContent
+
+#### Get Signature
+
+```ts
+get textContent(): string;
+```
+
+The text content of this node (and its children).
+
+##### Returns
+
+`string`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`textContent`](#textcontent)
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild(node: Node): Node;
+```
+
+Appends a child node into the current one.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | [`Node`](#classesnodemd) | The new child node |
+
+#### Returns
+
+[`Node`](#classesnodemd)
+
+The same node that was passed in.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### getAttribute()
+
+```ts
+getAttribute(name: string): string | null;
+```
 
 Read an attribute from the element.
 
-##### Parameters
+#### Parameters
 
-| Name | Type     | Description                 |
-| ---- | -------- | --------------------------- |
-| name | `string` | The attribute name to read. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | The attribute name to read. |
 
-##### Returns
+#### Returns
 
-`string` | `null` – The attribute.
+`string` \| `null`
 
----
+The attribute.
 
-#### <a id="Element.getElementsByTagName" href="#Element.getElementsByTagName">#</a> .getElementsByTagName( tagName ) ⇒ `Array<Element>`
+***
+
+### getElementsByTagName()
+
+```ts
+getElementsByTagName(tagName: string): Element[];
+```
 
 Return all descendant elements that have the specified tag name.
 
-##### Parameters
+#### Parameters
 
-| Name    | Type     | Description                |
-| ------- | -------- | -------------------------- |
-| tagName | `string` | The tag name to filter by. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `tagName` | `string` | The tag name to filter by. |
 
-##### Returns
+#### Returns
 
-`Array<Element>` – The elements by tag name.
+`Element`[]
 
----
+The elements by tag name.
 
-#### <a id="Element.hasAttribute" href="#Element.hasAttribute">#</a> .hasAttribute( name ) ⇒ `boolean`
+***
+
+### hasAttribute()
+
+```ts
+hasAttribute(name: string): boolean;
+```
 
 Test if an attribute exists on the element.
 
-##### Parameters
+#### Parameters
 
-| Name | Type     | Description                     |
-| ---- | -------- | ------------------------------- |
-| name | `string` | The attribute name to test for. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | The attribute name to test for. |
 
-##### Returns
+#### Returns
 
-`boolean` – True if the attribute is present.
+`boolean`
 
----
+True if the attribute is present.
 
-#### <a id="Element.nodeName" href="#Element.nodeName">#</a> .nodeName
+***
 
-A node type string identifier.
+### querySelector()
 
----
-
-#### <a id="Element.nodeType" href="#Element.nodeType">#</a> .nodeType
-
-A numerical node type identifier.
-
----
-
-#### <a id="Element.ns" href="#Element.ns">#</a> .ns
-
-The namespace prefix of the element, or null if no prefix is specified.
-
----
-
-#### <a id="Element.parentNode" href="#Element.parentNode">#</a> .parentNode
-
-The node's parent node.
-
----
-
-#### <a id="Element.preserveSpace" href="#Element.preserveSpace">#</a> .preserveSpace
-
-True if xml:space has been set to true for this node or any of its ancestors.
-
----
-
-#### <a id="Element.querySelector" href="#Element.querySelector">#</a> .querySelector( selector ) ⇒ [`Element`](#Element) | `null`
+```ts
+querySelector(selector: string): Element | null;
+```
 
 Return the first descendant element that match a specified CSS selector.
 
-##### Parameters
+#### Parameters
 
-| Name     | Type     | Description                    |
-| -------- | -------- | ------------------------------ |
-| selector | `string` | The CSS selector to filter by. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `selector` | `string` | The CSS selector to filter by. |
 
-##### Returns
+#### Returns
 
-[`Element`](#Element) | `null` – The elements by tag name.
+`Element` \| `null`
 
----
+The elements by tag name.
 
-#### <a id="Element.querySelectorAll" href="#Element.querySelectorAll">#</a> .querySelectorAll( selector ) ⇒ `Array<Element>`
+***
+
+### querySelectorAll()
+
+```ts
+querySelectorAll(selector: string): Element[];
+```
 
 Return all descendant elements that match a specified CSS selector.
 
-##### Parameters
+#### Parameters
 
-| Name     | Type     | Description                    |
-| -------- | -------- | ------------------------------ |
-| selector | `string` | The CSS selector to filter by. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `selector` | `string` | The CSS selector to filter by. |
 
-##### Returns
+#### Returns
 
-`Array<Element>` – The elements by tag name.
+`Element`[]
 
----
+The elements by tag name.
 
-#### <a id="Element.removeAttribute" href="#Element.removeAttribute">#</a> .removeAttribute( name ) ⇒ `void`
+***
+
+### removeAttribute()
+
+```ts
+removeAttribute(name: string): void;
+```
 
 Remove an attribute off the element.
 
-##### Parameters
+#### Parameters
 
-| Name | Type     | Description                   |
-| ---- | -------- | ----------------------------- |
-| name | `string` | The attribute name to remove. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | The attribute name to remove. |
 
----
+#### Returns
 
-#### <a id="Element.setAttribute" href="#Element.setAttribute">#</a> .setAttribute( name, value ) ⇒ `void`
+`void`
+
+***
+
+### setAttribute()
+
+```ts
+setAttribute(name: string, value: string): void;
+```
 
 Sets an attribute on the element.
 
-##### Parameters
+#### Parameters
 
-| Name  | Type     | Description                 |
-| ----- | -------- | --------------------------- |
-| name  | `string` | The attribute name to read. |
-| value | `string` | The value to set            |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | The attribute name to read. |
+| `value` | `string` | The value to set |
 
----
+#### Returns
 
-#### <a id="Element.tagName" href="#Element.tagName">#</a> .tagName
+`void`
 
-The name of the tag for the given element, excluding any namespace prefix.
+***
 
----
+### toJS()
 
-#### <a id="Element.textContent" href="#Element.textContent">#</a> .textContent
-
-The text content of this node (and its children).
-
----
-
-#### <a id="Element.toJS" href="#Element.toJS">#</a> .toJS() ⇒ `Array<any>` | `string`
+```ts
+toJS(): JsonMLElement;
+```
 
 Returns a simple object representation of the node and its descendants.
 
-##### Returns
+#### Returns
 
-`Array<any>` | `string` – JsonML representation of the nodes and its subtree.
+[`JsonMLElement`](#type-aliasesjsonmlelementmd)
 
----
+JsonML representation of the nodes and its subtree.
 
-#### <a id="Element.toString" href="#Element.toString">#</a> .toString() ⇒ `string`
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
 
 Returns a string representation of the node.
 
-##### Returns
+#### Returns
 
-`string` – A formatted XML source.
+`string`
 
----
+A formatted XML source.
 
-### <a id="Node" href="#Node">#</a> Node()
+#### Inherited from
+
+[`Node`](#classesnodemd).[`toString`](#tostring)
+
+
+<a name="classesnodemd"></a>
+
+# Node
 
 A class describing a Node.
 
----
+## Extended by
 
-#### <a id="Node.constructor" href="#Node.constructor">#</a> .constructor()
+- [`Element`](#classeselementmd)
+- [`Document`](#classesdocumentmd)
+- [`TextNode`](#classestextnodemd)
+- [`CDataNode`](#classescdatanodemd)
 
-Constructs a new Node instance.
+## Constructors
 
----
+### Constructor
 
-#### <a id="Node.appendChild" href="#Node.appendChild">#</a> .appendChild( node ) ⇒ [`Node`](#Node)
+```ts
+new Node(): Node;
+```
 
-Appends a child node into the current one.
+#### Returns
 
-##### Parameters
+`Node`
 
-| Name | Type            | Description        |
-| ---- | --------------- | ------------------ |
-| node | [`Node`](#Node) | The new child node |
+## Properties
 
-##### Returns
+| Property | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | `Node`[] | `[]` | The node's immediate children. |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. |
+| <a id="parentnode"></a> `parentNode` | `Node` \| `null` | `null` | The node's parent node. |
 
-[`Node`](#Node) – The same node that was passed in.
+## Accessors
 
----
+### preserveSpace
 
-#### <a id="Node.childNodes" href="#Node.childNodes">#</a> .childNodes
+#### Get Signature
 
-The node's children.
-
----
-
-#### <a id="Node.nodeName" href="#Node.nodeName">#</a> .nodeName
-
-A node type string identifier.
-
----
-
-#### <a id="Node.nodeType" href="#Node.nodeType">#</a> .nodeType
-
-A numerical node type identifier.
-
----
-
-#### <a id="Node.parentNode" href="#Node.parentNode">#</a> .parentNode
-
-The node's parent node.
-
----
-
-#### <a id="Node.preserveSpace" href="#Node.preserveSpace">#</a> .preserveSpace() ⇒ `void`
+```ts
+get preserveSpace(): boolean;
+```
 
 True if xml:space has been set to true for this node or any of its ancestors.
 
----
+##### Returns
 
-#### <a id="Node.textContent" href="#Node.textContent">#</a> .textContent() ⇒ `void`
+`boolean`
+
+***
+
+### textContent
+
+#### Get Signature
+
+```ts
+get textContent(): string;
+```
 
 The text content of this node (and its children).
 
----
+##### Returns
 
-#### <a id="Node.toString" href="#Node.toString">#</a> .toString() ⇒ `string`
+`string`
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild(node: Node): Node;
+```
+
+Appends a child node into the current one.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | `Node` | The new child node |
+
+#### Returns
+
+`Node`
+
+The same node that was passed in.
+
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
 
 Returns a string representation of the node.
 
-##### Returns
+#### Returns
 
-`string` – A formatted XML source.
+`string`
 
----
+A formatted XML source.
 
-### <a id="TextNode" href="#TextNode">#</a> TextNode( _[value = `""`]_ ) extends [`Node`](#Node)
+
+<a name="classestextnodemd"></a>
+
+# TextNode
 
 A class describing a TextNode.
 
----
+## Extends
 
-#### <a id="TextNode.constructor" href="#TextNode.constructor">#</a> .constructor( _[value = `""`]_ )
+- [`Node`](#classesnodemd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new TextNode(value?: string): TextNode;
+```
 
 Constructs a new TextNode instance.
 
-##### Parameters
+#### Parameters
 
-| Name    | Type     | Default | Description           |
-| ------- | -------- | ------- | --------------------- |
-| [value] | `string` | `""`    | The data for the node |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `value?` | `string` | The data for the node |
 
----
+#### Returns
 
-#### <a id="TextNode.appendChild" href="#TextNode.appendChild">#</a> .appendChild( node ) ⇒ [`Node`](#Node)
+`TextNode`
 
-Appends a child node into the current one.
+#### Overrides
 
-##### Parameters
+[`Node`](#classesnodemd).[`constructor`](#constructor)
 
-| Name | Type            | Description        |
-| ---- | --------------- | ------------------ |
-| node | [`Node`](#Node) | The new child node |
+## Properties
 
-##### Returns
+| Property | Type | Default value | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
+| <a id="value"></a> `value` | `string` | `undefined` | The node's data value. | - |
 
-[`Node`](#Node) – The same node that was passed in.
+## Accessors
 
----
+### preserveSpace
 
-#### <a id="TextNode.childNodes" href="#TextNode.childNodes">#</a> .childNodes
+#### Get Signature
 
-The node's children.
-
----
-
-#### <a id="TextNode.nodeName" href="#TextNode.nodeName">#</a> .nodeName
-
-A node type string identifier.
-
----
-
-#### <a id="TextNode.nodeType" href="#TextNode.nodeType">#</a> .nodeType
-
-A numerical node type identifier.
-
----
-
-#### <a id="TextNode.parentNode" href="#TextNode.parentNode">#</a> .parentNode
-
-The node's parent node.
-
----
-
-#### <a id="TextNode.preserveSpace" href="#TextNode.preserveSpace">#</a> .preserveSpace
+```ts
+get preserveSpace(): boolean;
+```
 
 True if xml:space has been set to true for this node or any of its ancestors.
 
----
+##### Returns
 
-#### <a id="TextNode.textContent" href="#TextNode.textContent">#</a> .textContent
+`boolean`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
+
+***
+
+### textContent
+
+#### Get Signature
+
+```ts
+get textContent(): string;
+```
 
 The text content of this node (and its children).
 
----
+##### Returns
 
-#### <a id="TextNode.toString" href="#TextNode.toString">#</a> .toString() ⇒ `string`
+`string`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`textContent`](#textcontent)
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild(node: Node): Node;
+```
+
+Appends a child node into the current one.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | [`Node`](#classesnodemd) | The new child node |
+
+#### Returns
+
+[`Node`](#classesnodemd)
+
+The same node that was passed in.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
 
 Returns a string representation of the node.
 
-##### Returns
+#### Returns
 
-`string` – A formatted XML source.
+`string`
 
----
+A formatted XML source.
 
-#### <a id="TextNode.value" href="#TextNode.value">#</a> .value
+#### Inherited from
 
-The node's data value.
+[`Node`](#classesnodemd).[`toString`](#tostring)
 
----
 
-## Function
+<a name="functionsparsexmlmd"></a>
 
-### <a id="parseXML" href="#parseXML">#</a> parseXML( source, _[options = `{}`]_ ) ⇒ [`Document`](#Document)
+# parseXML()
+
+```ts
+function parseXML(source: string, options?: {
+  emptyDoc?: boolean;
+  laxAttr?: boolean;
+}): Document;
+```
 
 Parse an XML source and return a Node tree.
 
-##### Parameters
+## Parameters
 
-| Name               | Type      | Default | Description                                      |
-| ------------------ | --------- | ------- | ------------------------------------------------ |
-| source             | `string`  |         | The XML source to parse.                         |
-| [options]          | `object`  | `{}`    | Parsing options.                                 |
-| [options].emptyDoc | `boolean` | `false` | Permit "rootless" documents.                     |
-| [options].laxAttr  | `boolean` | `false` | Permit unquoted attributes (`<node foo=bar />`). |
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `source` | `string` | `undefined` | The XML source to parse. |
+| `options?` | \{ `emptyDoc?`: `boolean`; `laxAttr?`: `boolean`; \} | `DEFAULTOPTIONS` | Parsing options. |
+| `options.emptyDoc?` | `boolean` | `undefined` | Permit "rootless" documents. |
+| `options.laxAttr?` | `boolean` | `undefined` | Permit unquoted attributes (`<node foo=bar />`). |
 
-##### Returns
+## Returns
 
-[`Document`](#Document) – A DOM representing the XML node tree.
+[`Document`](#classesdocumentmd)
 
----
+A DOM representing the XML node tree.
 
-## Constants
 
-### <a id="ATTRIBUTE_NODE" href="#ATTRIBUTE_NODE">#</a> ATTRIBUTE_NODE = `number`
+<a name="type-aliasesjsonmlattrmd"></a>
+
+# JsonMLAttr
+
+```ts
+type JsonMLAttr = Record<string, string | number | boolean | null>;
+```
+
+
+<a name="type-aliasesjsonmlelementmd"></a>
+
+# JsonMLElement
+
+```ts
+type JsonMLElement = 
+  | [string, JsonMLAttr, ...JsonMLElement[]]
+  | [string, JsonMLAttr]
+  | [string, ...JsonMLElement[]]
+  | [string]
+  | string;
+```
+
+
+<a name="variablesattribute_nodemd"></a>
+
+# ATTRIBUTE\_NODE
+
+```ts
+const ATTRIBUTE_NODE: number = 2;
+```
 
 An attribute node identifier
 
----
 
-### <a id="CDATA_SECTION_NODE" href="#CDATA_SECTION_NODE">#</a> CDATA_SECTION_NODE = `number`
+<a name="variablescdata_section_nodemd"></a>
+
+# CDATA\_SECTION\_NODE
+
+```ts
+const CDATA_SECTION_NODE: number = 4;
+```
 
 A CData Section node identifier
 
----
 
-### <a id="COMMENT_NODE" href="#COMMENT_NODE">#</a> COMMENT_NODE = `number`
+<a name="variablescomment_nodemd"></a>
+
+# COMMENT\_NODE
+
+```ts
+const COMMENT_NODE: number = 8;
+```
 
 A comment node identifier
 
----
 
-### <a id="DOCUMENT_FRAGMENT_NODE" href="#DOCUMENT_FRAGMENT_NODE">#</a> DOCUMENT_FRAGMENT_NODE = `number`
+<a name="variablesdocument_fragment_nodemd"></a>
+
+# DOCUMENT\_FRAGMENT\_NODE
+
+```ts
+const DOCUMENT_FRAGMENT_NODE: number = 11;
+```
 
 A document fragment node identifier
 
----
 
-### <a id="DOCUMENT_NODE" href="#DOCUMENT_NODE">#</a> DOCUMENT_NODE = `number`
+<a name="variablesdocument_nodemd"></a>
+
+# DOCUMENT\_NODE
+
+```ts
+const DOCUMENT_NODE: number = 9;
+```
 
 A document node identifier
 
----
 
-### <a id="DOCUMENT_TYPE_NODE" href="#DOCUMENT_TYPE_NODE">#</a> DOCUMENT_TYPE_NODE = `number`
+<a name="variablesdocument_type_nodemd"></a>
+
+# DOCUMENT\_TYPE\_NODE
+
+```ts
+const DOCUMENT_TYPE_NODE: number = 10;
+```
 
 A document type node identifier
 
----
 
-### <a id="ELEMENT_NODE" href="#ELEMENT_NODE">#</a> ELEMENT_NODE = `number`
+<a name="variableselement_nodemd"></a>
+
+# ELEMENT\_NODE
+
+```ts
+const ELEMENT_NODE: number = 1;
+```
 
 An element node identifier
 
----
 
-### <a id="ENTITY_NODE" href="#ENTITY_NODE">#</a> ENTITY_NODE = `number`
+<a name="variablesentity_nodemd"></a>
+
+# ENTITY\_NODE
+
+```ts
+const ENTITY_NODE: number = 6;
+```
 
 An entity node identifier
 
----
 
-### <a id="ENTITY_REFERENCE_NODE" href="#ENTITY_REFERENCE_NODE">#</a> ENTITY_REFERENCE_NODE = `number`
+<a name="variablesentity_reference_nodemd"></a>
+
+# ENTITY\_REFERENCE\_NODE
+
+```ts
+const ENTITY_REFERENCE_NODE: number = 5;
+```
 
 An entity reference node identifier
 
----
 
-### <a id="NOTATION_NODE" href="#NOTATION_NODE">#</a> NOTATION_NODE = `number`
+<a name="variablesnotation_nodemd"></a>
+
+# NOTATION\_NODE
+
+```ts
+const NOTATION_NODE: number = 12;
+```
 
 A documentation node identifier
 
----
 
-### <a id="PROCESSING_INSTRUCTION_NODE" href="#PROCESSING_INSTRUCTION_NODE">#</a> PROCESSING_INSTRUCTION_NODE = `number`
+<a name="variablesprocessing_instruction_nodemd"></a>
+
+# PROCESSING\_INSTRUCTION\_NODE
+
+```ts
+const PROCESSING_INSTRUCTION_NODE: number = 7;
+```
 
 A processing instruction node identifier
 
----
 
-### <a id="TEXT_NODE" href="#TEXT_NODE">#</a> TEXT_NODE = `number`
+<a name="variablestext_nodemd"></a>
+
+# TEXT\_NODE
+
+```ts
+const TEXT_NODE: number = 3;
+```
 
 A text node identifier
-
----
-
-

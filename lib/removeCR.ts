@@ -1,11 +1,4 @@
-/* eslint-disable jsdoc/require-returns-description */
-/* eslint-disable jsdoc/require-param-description */
-/**
- * @ignore
- * @param {string} source
- * @returns {string}
- */
-export function removeCR (source) {
+export function removeCR (source: string): string {
   let output = '';
 
   let pos = 0;

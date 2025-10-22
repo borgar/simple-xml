@@ -1,9 +1,9 @@
+import type { Element } from '../Element.ts';
 import { FILTERS } from './filters.js';
-import { tokenize } from './tokenize.js';
+import { tokenize, type SelectorToken } from './tokenize.js';
 
-export function matchToken (t, not, elms) {
+export function matchToken (t: SelectorToken, not: boolean, elms: Element[]) {
   const tagName = t.tagName;
-  not = not || 0;
 
   if (t.operator) {
     elms = FILTERS[t.operator](tagName, elms);
@@ -29,13 +29,13 @@ export function matchToken (t, not, elms) {
     const pn = ps.name.replace(/-/g, '');
     if (pn === 'not' && !not) {
       const tok = tokenize(ps.value)[0];
-      elms = matchToken(tok, 1, elms);
+      elms = matchToken(tok, true, elms);
     }
     else if (ps.nth) {
       elms = FILTERS.nth(
         ps.value, elms, not,
         ps.type ? tagName : '',
-        ps.last
+        !!ps.last
       );
     }
     else if (FILTERS[pn]) {
