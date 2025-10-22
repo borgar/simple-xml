@@ -56,7 +56,7 @@ export class Element extends Node {
 
   // overwrites super
   get preserveSpace (): boolean {
-    if (this.attr && this.attr['xml:space'] === 'preserve') {
+    if (this.attr?.['xml:space'] === 'preserve') {
       return true;
     }
     if (this.parentNode) {
