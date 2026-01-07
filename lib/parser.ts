@@ -52,6 +52,8 @@ const OPEN_BRACE = 60; // "<"
 const CLOSE_BRACE = 62; // ">"
 const QUESTION = 63; // "?"
 const SLASH = 47; // "/"
+const DOUBLE_QUOTE = 34; // '"'
+const SINGLE_QUOTE = 39; // "'"
 
 type ParserFunction = (s: string, pos?: number) => null | string[];
 type ParseHandler = (...args: string[]) => boolean;
@@ -143,13 +145,23 @@ const fnTag: ParserFunction = (s, startIndex = 0) => {
   }
 
   // group 2: optional attrs, must start with whitespace;
-  // tops before '/' or '>'
+  // stops before '/' or '>' (but not when inside quoted attribute values)
   const attrsStart = i;
   let attrsEnd = i;
   if (i < n && isWS(s[i])) {
+    let inQuote = 0; // 0 = not in quote, otherwise the quote char code
     do {
-      if (s.charCodeAt(i) === CLOSE_BRACE || s.startsWith('/>', i)) {
-        break;
+      const ch = s.charCodeAt(i);
+      if (inQuote === 0) {
+        if (ch === DOUBLE_QUOTE || ch === SINGLE_QUOTE) {
+          inQuote = ch;
+        }
+        else if (ch === CLOSE_BRACE || s.startsWith('/>', i)) {
+          break;
+        }
+      }
+      else if (ch === inQuote) {
+        inQuote = 0;
       }
       i++;
     } while (i < n);
