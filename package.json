@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "description": "A reasonably fast, simple and pure-JS XML parser with no dependencies",
   "type": "module",
-  "source": "src/index.ts",
+  "source": "lib/index.ts",
   "main": "dist/index.cjs",
   "types": "dist/index.d.cts",
   "exports": {
