@@ -75,6 +75,22 @@ describe('parse-simple', () => {
     expect(() => parseXML('<node &=\'1\'/>')).toThrow();
   });
 
+  it('> inside attribute values', () => {
+    expect(parseXML('<a href="foo>bar" />').toJS()).toEqual([ 'a', { href: 'foo>bar' } ]);
+    expect(parseXML("<a href='foo>bar' />").toJS()).toEqual([ 'a', { href: 'foo>bar' } ]);
+    expect(parseXML('<a v="a/>b" />').toJS()).toEqual([ 'a', { v: 'a/>b' } ]);
+    expect(parseXML('<a v="a>b>c" />').toJS()).toEqual([ 'a', { v: 'a>b>c' } ]);
+    expect(parseXML('<a x=">" y="z" />').toJS()).toEqual([ 'a', { x: '>', y: 'z' } ]);
+    expect(parseXML('<a href="foo>bar">text</a>').toJS()).toEqual([ 'a', { href: 'foo>bar' }, 'text' ]);
+  });
+
+  it('opposite quote type inside attribute values', () => {
+    expect(parseXML('<a v="a\'b" />').toJS()).toEqual([ 'a', { v: "a'b" } ]);
+    expect(parseXML("<a v='a\"b' />").toJS()).toEqual([ 'a', { v: 'a"b' } ]);
+    expect(parseXML('<a v="a>\'b" />').toJS()).toEqual([ 'a', { v: "a>'b" } ]);
+    expect(parseXML("<a v='a>\"b' />").toJS()).toEqual([ 'a', { v: 'a>"b' } ]);
+  });
+
   it('invalid syntax', () => {
     expect(() => parseXML('')).toThrow();
     // allow empty docs with option:
