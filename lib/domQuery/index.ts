@@ -30,7 +30,21 @@ export function domQuery (contextNode: Element | Document, selector: string): El
   }
 
   // return collection of unique nodes in document order
+
+  if (selectorBits.length === 1) {
+    // Single selector group: results are in document order, just need to
+    // deduplicate (because dupes can happen with descendant combinators)
+    const seen = new Set<Element>();
+    return elements.filter(elm => {
+      if (seen.has(elm)) return false;
+      seen.add(elm);
+      return true;
+    });
+  }
+
+  // Multiple selector groups: restore document order via tree walk
+  const elementSet = new Set(elements);
   return contextNode
     .getElementsByTagName('*')
-    .filter(elm => elements.includes(elm));
+    .filter(elm => elementSet.has(elm));
 }
