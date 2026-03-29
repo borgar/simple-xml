@@ -1,9 +1,13 @@
 import { Node } from './Node.js';
-import { ELEMENT_NODE } from './constants.js';
+import { ELEMENT_NODE, XML_DECLARATION } from './constants.js';
 import { JsonML, type JsonMLElement } from './JsonML.js';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
 import { isElement } from './isElement.ts';
+import { TextNode } from './TextNode.ts';
+import type { CreateChildArgument } from './CreateChildArgument.ts';
+import { prettyPrint } from './prettyPrint.ts';
+import { simplePrint } from './simplePrint.ts';
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -31,7 +35,7 @@ export class Element extends Node {
    * Constructs a new Element instance.
    *
    * @param tagName The tag name of the node.
-   * @param [attr={}] A collection of attributes to assign.
+   * @param [attr={}] A collection of attributes to assign. Values of null or undefined will be ignored.
    * @param [closed=false] Was the element "self-closed" when read.
    */
   constructor (tagName: string, attr: Record<string, string> = {}, closed: boolean = false) {
@@ -46,7 +50,12 @@ export class Element extends Node {
     this.fullName = tagName;
     this.closed = !!closed;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.attr = Object.assign(Object.create(null), attr);
+    this.attr = Object.create(null);
+    for (const [ k, v ] of Object.entries(attr)) {
+      if (v != null) {
+        this.setAttribute(k, v);
+      }
+    }
 
     // inherited instance props from Node
     this.nodeName = this.tagName.toUpperCase();
@@ -73,6 +82,18 @@ export class Element extends Node {
   }
 
   /**
+   * Returns an element's first child Element, or null if there are no child elements
+   */
+  get firstElementChild (): Element | null {
+    for (const child of this.childNodes) {
+      if (isElement(child)) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Read an attribute from the element.
    *
    * @param name The attribute name to read.
@@ -88,8 +109,8 @@ export class Element extends Node {
    * @param name The attribute name to read.
    * @param value The value to set
    */
-  setAttribute (name: string, value: string) {
-    this.attr[name] = value;
+  setAttribute (name: string, value: string | number | boolean) {
+    this.attr[name] = String(value);
   }
 
   /**
@@ -109,6 +130,46 @@ export class Element extends Node {
    */
   removeAttribute (name: string) {
     delete this.attr[name];
+  }
+
+  get className (): string {
+    return this.getAttribute('class') ?? '';
+  }
+
+  set className (val: unknown) {
+    this.setAttribute('class', String(val));
+  }
+
+  /**
+   * Inserts a set of Node objects or strings after the last child of the Element.
+   * Strings are inserted as equivalent Text nodes.
+   */
+  append (...nodes: (CreateChildArgument | CreateChildArgument[])[]): void {
+    const flatNodes = nodes.flat();
+    for (const n of flatNodes) {
+      if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
+        this.appendChild(new TextNode(n));
+      }
+      else if (n) {
+        this.appendChild(n);
+      }
+    }
+  }
+
+  /**
+   * Insert a set of Node objects or strings before the first child of the Element.
+   * Strings are inserted as equivalent Text nodes.
+   */
+  prepend (...nodes: (CreateChildArgument | CreateChildArgument[])[]): void {
+    const flatNodes = nodes.flat();
+    for (const n of flatNodes) {
+      if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
+        this.insertBefore(new TextNode(n), this.firstChild);
+      }
+      else if (n) {
+        this.insertBefore(n, this.firstChild);
+      }
+    }
   }
 
   /**
@@ -158,5 +219,17 @@ export class Element extends Node {
    */
   toJS (): JsonMLElement {
     return JsonML(this);
+  }
+
+  /**
+   * Print the document as a string.
+   *
+   * @param pretty Apply automatic linebreaks and indentation to the output.
+   * @returns The document as an XML string.
+   */
+  print (pretty = false): string {
+    return `${XML_DECLARATION}\n` + (
+      pretty ? prettyPrint(this) : simplePrint(this)
+    );
   }
 }

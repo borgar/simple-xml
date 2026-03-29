@@ -9,9 +9,10 @@ const entities: Record<string, string> = {
 };
 
 /**
- * @ignore
+ * Escape XML entities in a string.
+ *
  * @param {string} s Unescaped string
- * @returns {string} XML escaped string
+ * @returns {string} Escaped string
  */
 export function escape (s: string): string {
   // eslint-disable-next-line no-control-regex

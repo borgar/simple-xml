@@ -238,6 +238,7 @@ function posToLine (pos: number, src: string): number {
  * @param [options={}] Parsing options.
  * @param [options.emptyDoc=false] Permit "rootless" documents.
  * @param [options.laxAttr=false] Permit unquoted attributes (`<node foo=bar />`).
+ * @param [options.ns=false] Validate xmlns and element namespaces as they are parsed.
  * @returns A DOM representing the XML node tree.
  */
 export function parseXML (
@@ -245,11 +246,13 @@ export function parseXML (
   options: {
     emptyDoc?: boolean;
     laxAttr?: boolean;
+    ns?: boolean;
   } = DEFAULTOPTIONS
 ): Document {
   // 2.11: before parsing, translate both the two-character sequence
   // \r\n and any \r that is not followed by \n to a single \n
   const xml = removeCR(source);
+  const doc = new Document();
 
   let pos = 0;
   let root = NON_ELEMENT;
@@ -290,6 +293,20 @@ export function parseXML (
     while (m);
   }
 
+  function checkNS (elm: Element) {
+    for (const key in elm.attr) {
+      if (key === 'xmlns') {
+        doc.attachNS(elm.attr[key], '');
+      }
+      if (key.startsWith('xmlns:')) {
+        doc.attachNS(elm.attr[key], key.slice(6));
+      }
+    }
+    if (elm.ns && !doc.namespaces.getByPrefix(elm.ns)) {
+      throw new Error('Unknown namespace prefix ' + elm.ns);
+    }
+  }
+
   // BOM
   if (xml.charCodeAt(pos) === 65279) {
     pos++;
@@ -316,6 +333,7 @@ export function parseXML (
   // root tag
   maybeMatchFn(fnTag, (_, t, a, c) => {
     root = new Element(t, parseAttr(a, options.laxAttr), !!c);
+    if (options.ns) checkNS(root);
     return true;
   });
 
@@ -351,7 +369,9 @@ export function parseXML (
         })
         ||
         maybeMatchFn(fnTag, (_, t, a, c) => {
-          const elm = new Element(t, parseAttr(a, options.laxAttr), !!c);
+          const attr = parseAttr(a, options.laxAttr);
+          const elm = new Element(t, attr, !!c);
+          if (options.ns) checkNS(elm);
           current?.appendChild(elm);
           if (!elm.closed) {
             current = elm;
@@ -384,7 +404,6 @@ export function parseXML (
     throw new Error(`Expected </${root.tagName}> got EOF`);
   }
 
-  const doc = new Document();
   if (root !== NON_ELEMENT) {
     doc.appendChild(root);
   }
