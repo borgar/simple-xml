@@ -33,3 +33,5 @@ export const DOCUMENT_FRAGMENT_NODE: number = 11;
 
 /** A documentation node identifier */
 export const NOTATION_NODE: number = 12;
+
+export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';

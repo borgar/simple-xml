@@ -1,5 +1,5 @@
 import type { CDataNode } from './CDataNode.ts';
-import type { Document } from './Document.ts';
+import { DocumentFragment } from './DocumentFragment.ts';
 import type { Node } from './Node.js';
 import type { TextNode } from './TextNode.ts';
 import { CDATA_SECTION_NODE, DOCUMENT_NODE, ELEMENT_NODE, TEXT_NODE } from './constants.js';
@@ -25,16 +25,19 @@ function printCData (node: CDataNode) {
   return `<![CDATA[${node.value.replace(/]]>/g, ']]&gt;')}]]>`;
 }
 
-function printDocument (node: Node): string {
+function printDocument (node: Node | DocumentFragment): string {
   return node.childNodes
     .map(n => prettyPrint(n))
     .join('\n');
 }
 
-export function prettyPrint (node: Node, indent: string = ''): string {
+export function prettyPrint (node: Node | DocumentFragment, indent: string = ''): string {
+  if (node instanceof DocumentFragment) {
+    return printDocument(node);
+  }
   const { preserveSpace } = node;
   if (node.nodeType === DOCUMENT_NODE) {
-    return printDocument(node as Document);
+    return printDocument(node);
   }
   else if (node.nodeType === CDATA_SECTION_NODE) {
     return printCData(node as CDataNode);
@@ -43,7 +46,7 @@ export function prettyPrint (node: Node, indent: string = ''): string {
     return printTextNode(node as TextNode);
   }
   else if (isElement(node)) {
-    const tagName = node.tagName;
+    const tagName = node.fullName;
     const { childNodes } = node;
     let children = '';
 

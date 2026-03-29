@@ -12,13 +12,14 @@ export class TextNode extends Node {
 
   /**
    * Constructs a new TextNode instance.
-   * @param {string} [value] The data for the node
+   *
+   * @param [value] The data for the node.
    */
-  constructor (value: string) {
+  constructor (value: any) {
     super();
     this.nodeName = '#text';
     this.nodeType = TEXT_NODE;
-    this.value = value || '';
+    this.value = String(value);
   }
 
   // overwrites super

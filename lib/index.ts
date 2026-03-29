@@ -4,6 +4,13 @@ export { Element } from './Element.js';
 export { Document } from './Document.js';
 export { TextNode } from './TextNode.js';
 export { CDataNode } from './CDataNode.js';
+export { DocumentFragment } from './DocumentFragment.ts';
+export { escape as escapeXML } from './escape.ts';
+export { isElement } from './isElement.ts';
+export { prettyPrint } from './prettyPrint.ts';
+export { simplePrint } from './simplePrint.ts';
+export type { CreateChildArgument } from './CreateChildArgument.js';
+export type { XMLAttr } from './XMLAttr.js';
 export type { JsonMLElement, JsonMLAttr } from './JsonML.js';
 export {
   ELEMENT_NODE,
