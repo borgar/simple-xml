@@ -1,5 +1,4 @@
 import type { CDataNode } from './CDataNode.ts';
-import type { Document } from './Document.ts';
 import { DocumentFragment } from './DocumentFragment.ts';
 import type { Node } from './Node.js';
 import type { TextNode } from './TextNode.ts';

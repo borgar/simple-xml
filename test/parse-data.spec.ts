@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import { parseXML } from '../lib/index.js';
@@ -35,7 +37,7 @@ describe('parse-data', () => {
     const src = fs.readFileSync(fileName, 'utf8');
     const dom = parseXML(src);
     expect(dom.toJS()).toEqual(expected);
-    expect(dom.root.textContent).toBe('   c  b   c  b ');
+    expect(dom.root!.textContent).toBe('   c  b   c  b ');
   });
 
   it('refs.xml', () => {
