@@ -7,14 +7,17 @@
 
 - [CDataNode](#classescdatanodemd)
 - [Document](#classesdocumentmd)
+- [DocumentFragment](#classesdocumentfragmentmd)
 - [Element](#classeselementmd)
 - [Node](#classesnodemd)
 - [TextNode](#classestextnodemd)
 
 ## Type Aliases
 
+- [CreateChildArgument](#type-aliasescreatechildargumentmd)
 - [JsonMLAttr](#type-aliasesjsonmlattrmd)
 - [JsonMLElement](#type-aliasesjsonmlelementmd)
+- [XMLAttr](#type-aliasesxmlattrmd)
 
 ## Variables
 
@@ -33,7 +36,11 @@
 
 ## Functions
 
+- [escapeXML](#functionsescapexmlmd)
+- [isElement](#functionsiselementmd)
 - [parseXML](#functionsparsexmlmd)
+- [prettyPrint](#functionsprettyprintmd)
+- [simplePrint](#functionssimpleprintmd)
 
 
 <a name="classescdatanodemd"></a>
@@ -82,6 +89,46 @@ Constructs a new CDataNode instance.
 
 ## Accessors
 
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`firstChild`](#firstchild)
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lastChild`](#lastchild)
+
+***
+
 ### preserveSpace
 
 #### Get Signature
@@ -125,26 +172,91 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild(node: Node): Node;
+appendChild<T>(node: T): T;
 ```
 
 Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `node` | [`Node`](#classesnodemd) | The new child node |
+| `node` | `T` | The new child node |
 
 #### Returns
 
-[`Node`](#classesnodemd)
+`T`
 
 The same node that was passed in.
 
 #### Inherited from
 
 [`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### insertBefore()
+
+```ts
+insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `child` | [`Node`](#classesnodemd) |
+
+#### Returns
+
+[`Node`](#classesnodemd) \| `undefined`
+
+The removed child node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`removeChild`](#removechild)
 
 ***
 
@@ -223,6 +335,46 @@ A list containing all child Elements of the current Element.
 
 ***
 
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`firstChild`](#firstchild)
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lastChild`](#lastchild)
+
+***
+
 ### preserveSpace
 
 #### Get Signature
@@ -266,26 +418,130 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild(node: Element): Element;
+appendChild<T>(node: T): T;
 ```
 
 Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `node` | [`Element`](#classeselementmd) | The new child node |
+| `node` | `T` | The new child node |
 
 #### Returns
 
-[`Element`](#classeselementmd)
+`T`
 
 The same node that was passed in.
 
 #### Overrides
 
 [`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### attachNS()
+
+```ts
+attachNS(namespaceURI: string, prefix?: string): (name: string, attr?: XMLAttr | null, ...children: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]) => Element;
+```
+
+Attach a namespace to the document.
+
+#### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `namespaceURI` | `string` | `undefined` | The namespace URI to attach. |
+| `prefix?` | `string` | `''` | Prefix to use on elements belonging to the namespace. |
+
+#### Returns
+
+```ts
+(
+   name: string, 
+   attr?: XMLAttr | null, ...
+   children: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]): Element;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `name` | `string` |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` |
+| ...`children?` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] |
+
+##### Returns
+
+[`Element`](#classeselementmd)
+
+***
+
+### createElement()
+
+```ts
+createElement(
+   qualifiedName: string, 
+   attr: XMLAttr | null | undefined, ...
+   children: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]): Element;
+```
+
+Create a new element node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `qualifiedName` | `string` | The local tagName of the element. |
+| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` \| `undefined` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
+| ...`children` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
+
+#### Returns
+
+[`Element`](#classeselementmd)
+
+A new Element instance.
+
+***
+
+### createElementNS()
+
+```ts
+createElementNS(
+   namespaceURI: string, 
+   qualifiedName: string, 
+   attr: XMLAttr | null | undefined, ...
+   children: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]): Element;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `namespaceURI` | `string` |
+| `qualifiedName` | `string` |
+| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` \| `undefined` |
+| ...`children` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] |
+
+#### Returns
+
+[`Element`](#classeselementmd)
 
 ***
 
@@ -308,6 +564,61 @@ Return all descendant elements that have the specified tag name.
 [`Element`](#classeselementmd)[]
 
 The elements by tag name.
+
+***
+
+### insertBefore()
+
+```ts
+insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### print()
+
+```ts
+print(pretty?: boolean): string;
+```
+
+Print the document as a string.
+
+#### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `pretty` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
+
+#### Returns
+
+`string`
+
+The document as an XML string.
 
 ***
 
@@ -355,17 +666,43 @@ The elements by tag name.
 
 ***
 
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `child` | [`Node`](#classesnodemd) |
+
+#### Returns
+
+[`Node`](#classesnodemd) \| `undefined`
+
+The removed child node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`removeChild`](#removechild)
+
+***
+
 ### toJS()
 
 ```ts
-toJS(): [] | JsonMLElement;
+toJS(): JsonMLElement | [];
 ```
 
 Returns a simple object representation of the node and its descendants.
 
 #### Returns
 
-\[\] \| [`JsonMLElement`](#type-aliasesjsonmlelementmd)
+[`JsonMLElement`](#type-aliasesjsonmlelementmd) \| \[\]
 
 JsonML representation of the nodes and its subtree.
 
@@ -388,6 +725,82 @@ A formatted XML source.
 #### Inherited from
 
 [`Node`](#classesnodemd).[`toString`](#tostring)
+
+
+<a name="classesdocumentfragmentmd"></a>
+
+# DocumentFragment
+
+A class describing a DocumentFragment.
+
+## Constructors
+
+### Constructor
+
+```ts
+new DocumentFragment(): DocumentFragment;
+```
+
+#### Returns
+
+`DocumentFragment`
+
+## Properties
+
+| Property | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The immediate children contained in the fragment. |
+| <a id="nodetype"></a> `nodeType` | `number` | `DOCUMENT_FRAGMENT_NODE` | A numerical node type identifier. |
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild<T>(node: T): T;
+```
+
+Appends a child node into the document fragment.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| `DocumentFragment` |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | `T` | The new child node |
+
+#### Returns
+
+`T`
+
+The same node that was passed in.
+
+***
+
+### print()
+
+```ts
+print(pretty?: boolean): string;
+```
+
+Print the document as a string.
+
+#### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `pretty` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
+
+#### Returns
+
+`string`
+
+The document as an XML string.
 
 
 <a name="classeselementmd"></a>
@@ -418,7 +831,7 @@ Constructs a new Element instance.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `tagName` | `string` | `undefined` | The tag name of the node. |
-| `attr?` | `Record`\<`string`, `string`\> | `{}` | A collection of attributes to assign. |
+| `attr?` | `Record`\<`string`, `string`\> | `{}` | A collection of attributes to assign. Values of null or undefined will be ignored. |
 | `closed?` | `boolean` | `false` | Was the element "self-closed" when read. |
 
 #### Returns
@@ -458,6 +871,92 @@ A list containing all child Elements of the current Element.
 ##### Returns
 
 `Element`[]
+
+***
+
+### className
+
+#### Get Signature
+
+```ts
+get className(): string;
+```
+
+##### Returns
+
+`string`
+
+#### Set Signature
+
+```ts
+set className(val: unknown): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `val` | `unknown` |
+
+##### Returns
+
+`void`
+
+***
+
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`firstChild`](#firstchild)
+
+***
+
+### firstElementChild
+
+#### Get Signature
+
+```ts
+get firstElementChild(): Element | null;
+```
+
+Returns an element's first child Element, or null if there are no child elements
+
+##### Returns
+
+`Element` \| `null`
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lastChild`](#lastchild)
 
 ***
 
@@ -501,23 +1000,52 @@ The text content of this node (and its children).
 
 ## Methods
 
+### append()
+
+```ts
+append(...nodes: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]): void;
+```
+
+Inserts a set of Node objects or strings after the last child of the Element.
+Strings are inserted as equivalent Text nodes.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| ...`nodes` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] |
+
+#### Returns
+
+`void`
+
+***
+
 ### appendChild()
 
 ```ts
-appendChild(node: Node): Node;
+appendChild<T>(node: T): T;
 ```
 
 Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `node` | [`Node`](#classesnodemd) | The new child node |
+| `node` | `T` | The new child node |
 
 #### Returns
 
-[`Node`](#classesnodemd)
+`T`
 
 The same node that was passed in.
 
@@ -593,6 +1121,84 @@ True if the attribute is present.
 
 ***
 
+### insertBefore()
+
+```ts
+insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### prepend()
+
+```ts
+prepend(...nodes: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]): void;
+```
+
+Insert a set of Node objects or strings before the first child of the Element.
+Strings are inserted as equivalent Text nodes.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| ...`nodes` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] |
+
+#### Returns
+
+`void`
+
+***
+
+### print()
+
+```ts
+print(pretty?: boolean): string;
+```
+
+Print the document as a string.
+
+#### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `pretty` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
+
+#### Returns
+
+`string`
+
+The document as an XML string.
+
+***
+
 ### querySelector()
 
 ```ts
@@ -657,10 +1263,36 @@ Remove an attribute off the element.
 
 ***
 
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `child` | [`Node`](#classesnodemd) |
+
+#### Returns
+
+[`Node`](#classesnodemd) \| `undefined`
+
+The removed child node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`removeChild`](#removechild)
+
+***
+
 ### setAttribute()
 
 ```ts
-setAttribute(name: string, value: string): void;
+setAttribute(name: string, value: string | number | boolean): void;
 ```
 
 Sets an attribute on the element.
@@ -670,7 +1302,7 @@ Sets an attribute on the element.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `name` | `string` | The attribute name to read. |
-| `value` | `string` | The value to set |
+| `value` | `string` \| `number` \| `boolean` | The value to set |
 
 #### Returns
 
@@ -749,6 +1381,38 @@ new Node(): Node;
 
 ## Accessors
 
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+`Node` \| `null`
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+`Node` \| `null`
+
+***
+
 ### preserveSpace
 
 #### Get Signature
@@ -784,22 +1448,79 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild(node: Node): Node;
+appendChild<T>(node: T): T;
 ```
 
 Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `node` | `Node` | The new child node |
+| `node` | `T` | The new child node |
 
 #### Returns
 
-`Node`
+`T`
 
 The same node that was passed in.
+
+***
+
+### insertBefore()
+
+```ts
+insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | `Node` \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+
+***
+
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `child` | `Node` |
+
+#### Returns
+
+`Node` \| `undefined`
+
+The removed child node.
 
 ***
 
@@ -833,7 +1554,7 @@ A class describing a TextNode.
 ### Constructor
 
 ```ts
-new TextNode(value?: string): TextNode;
+new TextNode(value?: any): TextNode;
 ```
 
 Constructs a new TextNode instance.
@@ -842,7 +1563,7 @@ Constructs a new TextNode instance.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `value?` | `string` | The data for the node |
+| `value?` | `any` | The data for the node. |
 
 #### Returns
 
@@ -859,10 +1580,50 @@ Constructs a new TextNode instance.
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
 | <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
 | <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
-| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Document`](#classesdocumentmd).[`parentNode`](#parentnode) |
 | <a id="value"></a> `value` | `string` | `undefined` | The node's data value. | - |
 
 ## Accessors
+
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`CDataNode`](#classescdatanodemd).[`firstChild`](#firstchild)
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`CDataNode`](#classescdatanodemd).[`lastChild`](#lastchild)
+
+***
 
 ### preserveSpace
 
@@ -907,26 +1668,91 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild(node: Node): Node;
+appendChild<T>(node: T): T;
 ```
 
 Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `node` | [`Node`](#classesnodemd) | The new child node |
+| `node` | `T` | The new child node |
 
 #### Returns
 
-[`Node`](#classesnodemd)
+`T`
 
 The same node that was passed in.
 
 #### Inherited from
 
 [`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### insertBefore()
+
+```ts
+insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `child` | [`Node`](#classesnodemd) |
+
+#### Returns
+
+[`Node`](#classesnodemd) \| `undefined`
+
+The removed child node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`removeChild`](#removechild)
 
 ***
 
@@ -949,6 +1775,48 @@ A formatted XML source.
 [`Node`](#classesnodemd).[`toString`](#tostring)
 
 
+<a name="functionsescapexmlmd"></a>
+
+# escapeXML()
+
+```ts
+function escapeXML(s: string): string;
+```
+
+Escape XML entities in a string.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `s` | `string` | Unescaped string |
+
+## Returns
+
+`string`
+
+Escaped string
+
+
+<a name="functionsiselementmd"></a>
+
+# isElement()
+
+```ts
+function isElement(d: unknown): d is Element;
+```
+
+## Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `d` | `unknown` |
+
+## Returns
+
+`d is Element`
+
+
 <a name="functionsparsexmlmd"></a>
 
 # parseXML()
@@ -957,6 +1825,7 @@ A formatted XML source.
 function parseXML(source: string, options?: {
   emptyDoc?: boolean;
   laxAttr?: boolean;
+  ns?: boolean;
 }): Document;
 ```
 
@@ -967,15 +1836,75 @@ Parse an XML source and return a Node tree.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `source` | `string` | `undefined` | The XML source to parse. |
-| `options?` | \{ `emptyDoc?`: `boolean`; `laxAttr?`: `boolean`; \} | `DEFAULTOPTIONS` | Parsing options. |
+| `options?` | \{ `emptyDoc?`: `boolean`; `laxAttr?`: `boolean`; `ns?`: `boolean`; \} | `DEFAULTOPTIONS` | Parsing options. |
 | `options.emptyDoc?` | `boolean` | `undefined` | Permit "rootless" documents. |
 | `options.laxAttr?` | `boolean` | `undefined` | Permit unquoted attributes (`<node foo=bar />`). |
+| `options.ns?` | `boolean` | `undefined` | Validate xmlns and element namespaces as they are parsed. |
 
 ## Returns
 
 [`Document`](#classesdocumentmd)
 
 A DOM representing the XML node tree.
+
+
+<a name="functionsprettyprintmd"></a>
+
+# prettyPrint()
+
+```ts
+function prettyPrint(node: 
+  | Node
+  | DocumentFragment, indent?: string): string;
+```
+
+## Parameters
+
+| Parameter | Type | Default value |
+| ------ | ------ | ------ |
+| `node` | \| [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) | `undefined` |
+| `indent` | `string` | `''` |
+
+## Returns
+
+`string`
+
+
+<a name="functionssimpleprintmd"></a>
+
+# simplePrint()
+
+```ts
+function simplePrint(node: 
+  | Node
+  | DocumentFragment): string;
+```
+
+## Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `node` | \| [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+## Returns
+
+`string`
+
+
+<a name="type-aliasescreatechildargumentmd"></a>
+
+# CreateChildArgument
+
+```ts
+type CreateChildArgument = 
+  | Node
+  | DocumentFragment
+  | string
+  | boolean
+  | number
+  | null
+  | undefined;
+```
 
 
 <a name="type-aliasesjsonmlattrmd"></a>
@@ -998,6 +1927,15 @@ type JsonMLElement =
   | [string, ...JsonMLElement[]]
   | [string]
   | string;
+```
+
+
+<a name="type-aliasesxmlattrmd"></a>
+
+# XMLAttr
+
+```ts
+type XMLAttr = Record<string, string | number | boolean | null | undefined>;
 ```
 
 
