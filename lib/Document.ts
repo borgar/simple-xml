@@ -48,7 +48,7 @@ export class Document extends Node {
   }
 
   /** @ignore */
-  _updateNS () {
+  private _updateNS () {
     // ensure that namespaces exist on the root node
     if (this.root) {
       for (const [ namespaceURI, prefix ] of this.namespaces.list()) {
@@ -106,10 +106,10 @@ export class Document extends Node {
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
     const ns = this.namespaces.get(namespaceURI);
-    if (!ns) {
+    if (ns == null) {
       throw new Error('Unknown namespace ' + namespaceURI);
     }
-    const element = new Element(ns + ':' + qualifiedName);
+    const element = new Element(ns ? ns + ':' + qualifiedName : qualifiedName);
     // can this not be solved by Element(name, attr) ... does the same thing internally, right?
     if (attr) {
       for (const [ key, val ] of Object.entries(attr)) {

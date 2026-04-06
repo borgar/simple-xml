@@ -1,6 +1,7 @@
 export class NSMap {
-  uriToPre: Record<string, string> = {};
-  preToUri: Record<string, string> = {};
+  private uriToPres: Record<string, string[]> = {};
+  private uriToPre: Record<string, string> = {};
+  private preToUri: Record<string, string> = {};
 
   get (nsURI: string): string | undefined {
     return this.uriToPre[nsURI];
@@ -11,17 +12,33 @@ export class NSMap {
   }
 
   list (): [string, string][] {
-    return Array.from(Object.entries(this.uriToPre));
+    const result: [string, string][] = [];
+    for (const [ uri, prefixes ] of Object.entries(this.uriToPres)) {
+      for (const prefix of prefixes) {
+        result.push([ uri, prefix ]);
+      }
+    }
+    return result;
   }
 
   add (nsURI: string, nsPrefix: string) {
-    if ((nsURI in this.uriToPre) && (this.uriToPre[nsURI] !== nsPrefix)) {
-      throw new Error(nsURI + ' allready has a different prefix');
+    // A prefix can only point to one URI — collisions are an error.
+    if ((nsPrefix in this.preToUri) && (this.preToUri[nsPrefix] !== nsURI)) {
+      throw new Error(nsPrefix + ' already has a different URI');
     }
-    if ((nsPrefix in this.preToUri) && (this.preToUri[nsPrefix] !== nsPrefix)) {
-      throw new Error(nsPrefix + ' allready has a different URI');
+    // Registering the same pair twice is a no-op.
+    if ((nsURI in this.uriToPres) && this.uriToPres[nsURI].includes(nsPrefix)) {
+      return;
     }
-    this.uriToPre[nsURI] = nsPrefix;
+    if (!(nsURI in this.uriToPres)) {
+      this.uriToPres[nsURI] = [];
+    }
+    this.uriToPres[nsURI].push(nsPrefix);
     this.preToUri[nsPrefix] = nsURI;
+    // Keep uriToPre pointing at the best prefix for fast get() lookups:
+    // prefer any named prefix over the empty (default) one.
+    if (!(nsURI in this.uriToPre) || (this.uriToPre[nsURI] === '' && nsPrefix !== '')) {
+      this.uriToPre[nsURI] = nsPrefix;
+    }
   }
 }
