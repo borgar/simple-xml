@@ -86,19 +86,24 @@ export class Document extends Node {
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
     const element = new Element(qualifiedName);
-    if (attr) {
-      for (const [ key, val ] of Object.entries(attr)) {
-        if (val != null) {
-          element.setAttribute(key, String(val));
-        }
-      }
-    }
+    element.setAttrValues(attr ?? null);
     for (const child of children) {
       element.append(child);
     }
     return element;
   };
 
+  /**
+   * Create a new element node associated with a given namespace.
+   *
+  * @param namespaceURI The namespaceURI to associate with the element.
+  * @param qualifiedName The local tagName of the element.
+  * @param attr A record of attributes to assign to the new element.
+  *             If the value is null or undefined, the attribute will be omitted.
+  * @param children Nodes to insert as children.
+  *                 Strings will be converted to TextNodes and arrays will be flattened.
+  * @returns A new Element instance.
+  */
   createElementNS = (
     namespaceURI: string,
     qualifiedName: string,
@@ -110,14 +115,7 @@ export class Document extends Node {
       throw new Error('Unknown namespace ' + namespaceURI);
     }
     const element = new Element(ns ? ns + ':' + qualifiedName : qualifiedName);
-    // can this not be solved by Element(name, attr) ... does the same thing internally, right?
-    if (attr) {
-      for (const [ key, val ] of Object.entries(attr)) {
-        if (val != null) {
-          element.setAttribute(key, String(val));
-        }
-      }
-    }
+    element.setAttrValues(attr ?? null);
     for (const child of children) {
       element.append(child);
     }

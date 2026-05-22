@@ -8,6 +8,7 @@ import { TextNode } from './TextNode.ts';
 import type { CreateChildArgument } from './CreateChildArgument.ts';
 import { prettyPrint } from './prettyPrint.ts';
 import { simplePrint } from './simplePrint.ts';
+import type { XMLAttr } from './XMLAttr.ts';
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -38,7 +39,7 @@ export class Element extends Node {
    * @param [attr={}] A collection of attributes to assign. Values of null or undefined will be ignored.
    * @param [closed=false] Was the element "self-closed" when read.
    */
-  constructor (tagName: string, attr: Record<string, string> = {}, closed: boolean = false) {
+  constructor (tagName: string, attr?: XMLAttr | null, closed: boolean = false) {
     super();
     let tagName_ = tagName;
     let ns: string | null = null;
@@ -51,12 +52,7 @@ export class Element extends Node {
     this.closed = !!closed;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.attr = Object.create(null);
-    for (const [ k, v ] of Object.entries(attr)) {
-      if (v != null) {
-        this.setAttribute(k, v);
-      }
-    }
-
+    this.setAttrValues(attr ?? null);
     // inherited instance props from Node
     this.nodeName = this.tagName.toUpperCase();
     this.nodeType = ELEMENT_NODE;
@@ -124,6 +120,22 @@ export class Element extends Node {
   }
 
   /**
+   * Assign multiple attributes at once to the current elemeent.
+   *
+   * @param attr A record of attributes to assign to the element.
+   *             If the value is null or undefined, the attribute will be omitted.
+   */
+  setAttrValues (attr: XMLAttr | null) {
+    if (attr) {
+      for (const [ key, val ] of Object.entries(attr)) {
+        if (val != null) {
+          this.setAttribute(key, val);
+        }
+      }
+    }
+  }
+
+  /**
    * Remove an attribute off the element.
    *
    * @param name The attribute name to remove.
@@ -170,6 +182,34 @@ export class Element extends Node {
         this.insertBefore(n, this.firstChild);
       }
     }
+  }
+
+  /**
+   * This method creates an element and immediately inserts it as a child of the element on which the
+   * method was called.
+   *
+   * The method implicitly creates the new element in the same namespace as the parent element.
+   *
+   * @param qualifiedName The local tagName of the element.
+   * @param attr A record of attributes to assign to the new element.
+   *             If the value is null or undefined, the attribute will be omitted.
+   * @param children Nodes to insert as children.
+   *                 Strings will be converted to TextNodes and arrays will be flattened.
+   * @returns A new Element instance.
+   */
+  createChild (
+    qualifiedName: string,
+    attr?: XMLAttr | null,
+    ...children: (CreateChildArgument | CreateChildArgument[])[]
+  ): Element {
+    const elm = new Element(qualifiedName);
+    elm.ns ??= this.ns;
+    elm.setAttrValues(attr ?? null);
+    this.appendChild(elm);
+    for (const child of children) {
+      elm.append(child);
+    }
+    return elm;
   }
 
   /**

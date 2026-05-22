@@ -7,6 +7,13 @@ import { CDATA_SECTION_NODE, DOCUMENT_NODE, TEXT_NODE } from './constants.js';
 import { escape } from './escape.js';
 import { isElement } from './isElement.ts';
 
+/**
+ * Serialize a node tree to a compact XML string without added whitespace,
+ * preserving the original child order and content verbatim.
+ *
+ * @param {Node | DocumentFragment} node The node to serialize.
+ * @returns {string} The serialized XML string.
+ */
 export function simplePrint (node: Node | DocumentFragment): string {
   if (node instanceof DocumentFragment) {
     return node.childNodes.map(n => simplePrint(n)).join('');

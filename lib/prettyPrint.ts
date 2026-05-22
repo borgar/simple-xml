@@ -31,6 +31,18 @@ function printDocument (node: Node | DocumentFragment): string {
     .join('\n');
 }
 
+/**
+ * Serialize a node tree to an XML string with indentation and whitespace
+ * formatting for readability.
+ *
+ * Element children are placed on separate indented lines, except when the
+ * element preserves whitespace (`xml:space="preserve"`), contains only text
+ * nodes, or contains a single CDATA section.
+ *
+ * @param {Node | DocumentFragment} node The node to serialize.
+ * @param {string} [indent=''] The indentation applied to the current depth.
+ * @returns {string} The formatted XML string.
+ */
 export function prettyPrint (node: Node | DocumentFragment, indent: string = ''): string {
   if (node instanceof DocumentFragment) {
     return printDocument(node);

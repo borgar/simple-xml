@@ -26,3 +26,5 @@ export {
   DOCUMENT_FRAGMENT_NODE,
   NOTATION_NODE
 } from './constants.js';
+
+export { XML_DECLARATION } from './constants.js';

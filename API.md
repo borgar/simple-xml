@@ -33,6 +33,7 @@
 - [NOTATION\_NODE](#variablesnotation_nodemd)
 - [PROCESSING\_INSTRUCTION\_NODE](#variablesprocessing_instruction_nodemd)
 - [TEXT\_NODE](#variablestext_nodemd)
+- [XML\_DECLARATION](#variablesxml_declarationmd)
 
 ## Functions
 
@@ -244,9 +245,9 @@ Removes a child node from the DOM and returns the removed node.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `child` | [`Node`](#classesnodemd) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
 
 #### Returns
 
@@ -530,18 +531,22 @@ createElementNS(
   | CreateChildArgument[])[]): Element;
 ```
 
+Create a new element node associated with a given namespace.
+
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `namespaceURI` | `string` |
-| `qualifiedName` | `string` |
-| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` \| `undefined` |
-| ...`children` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` | The namespaceURI to associate with the element. |
+| `qualifiedName` | `string` | The local tagName of the element. |
+| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` \| `undefined` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
+| ...`children` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
 
 #### Returns
 
 [`Element`](#classeselementmd)
+
+A new Element instance.
 
 ***
 
@@ -676,9 +681,9 @@ Removes a child node from the DOM and returns the removed node.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `child` | [`Node`](#classesnodemd) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
 
 #### Returns
 
@@ -820,7 +825,7 @@ A class describing an Element.
 ```ts
 new Element(
    tagName: string, 
-   attr?: Record<string, string>, 
+   attr?: XMLAttr | null, 
    closed?: boolean): Element;
 ```
 
@@ -831,7 +836,7 @@ Constructs a new Element instance.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `tagName` | `string` | `undefined` | The tag name of the node. |
-| `attr?` | `Record`\<`string`, `string`\> | `{}` | A collection of attributes to assign. Values of null or undefined will be ignored. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | `undefined` | A collection of attributes to assign. Values of null or undefined will be ignored. |
 | `closed?` | `boolean` | `false` | Was the element "self-closed" when read. |
 
 #### Returns
@@ -1055,6 +1060,38 @@ The same node that was passed in.
 
 ***
 
+### createChild()
+
+```ts
+createChild(
+   qualifiedName: string, 
+   attr?: XMLAttr | null, ...
+   children: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]): Element;
+```
+
+This method creates an element and immediately inserts it as a child of the element on which the
+method was called.
+
+The method implicitly creates the new element in the same namespace as the parent element.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `qualifiedName` | `string` | The local tagName of the element. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
+| ...`children?` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
+
+#### Returns
+
+`Element`
+
+A new Element instance.
+
+***
+
 ### getAttribute()
 
 ```ts
@@ -1273,9 +1310,9 @@ Removes a child node from the DOM and returns the removed node.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `child` | [`Node`](#classesnodemd) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
 
 #### Returns
 
@@ -1303,6 +1340,26 @@ Sets an attribute on the element.
 | ------ | ------ | ------ |
 | `name` | `string` | The attribute name to read. |
 | `value` | `string` \| `number` \| `boolean` | The value to set |
+
+#### Returns
+
+`void`
+
+***
+
+### setAttrValues()
+
+```ts
+setAttrValues(attr: XMLAttr | null): void;
+```
+
+Assign multiple attributes at once to the current elemeent.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the element. If the value is null or undefined, the attribute will be omitted. |
 
 #### Returns
 
@@ -1512,9 +1569,9 @@ Removes a child node from the DOM and returns the removed node.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `child` | `Node` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | `Node` | The child node to be removed. |
 
 #### Returns
 
@@ -1740,9 +1797,9 @@ Removes a child node from the DOM and returns the removed node.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `child` | [`Node`](#classesnodemd) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
 
 #### Returns
 
@@ -1858,16 +1915,25 @@ function prettyPrint(node:
   | DocumentFragment, indent?: string): string;
 ```
 
+Serialize a node tree to an XML string with indentation and whitespace
+formatting for readability.
+
+Element children are placed on separate indented lines, except when the
+element preserves whitespace (`xml:space="preserve"`), contains only text
+nodes, or contains a single CDATA section.
+
 ## Parameters
 
-| Parameter | Type | Default value |
-| ------ | ------ | ------ |
-| `node` | \| [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) | `undefined` |
-| `indent` | `string` | `''` |
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `node` | \| [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) | `undefined` | The node to serialize. |
+| `indent?` | `string` | `''` | The indentation applied to the current depth. |
 
 ## Returns
 
 `string`
+
+The formatted XML string.
 
 
 <a name="functionssimpleprintmd"></a>
@@ -1880,15 +1946,20 @@ function simplePrint(node:
   | DocumentFragment): string;
 ```
 
+Serialize a node tree to a compact XML string without added whitespace,
+preserving the original child order and content verbatim.
+
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `node` | \| [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | \| [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) | The node to serialize. |
 
 ## Returns
 
 `string`
+
+The serialized XML string.
 
 
 <a name="type-aliasescreatechildargumentmd"></a>
@@ -2069,3 +2140,14 @@ const TEXT_NODE: number = 3;
 ```
 
 A text node identifier
+
+
+<a name="variablesxml_declarationmd"></a>
+
+# XML\_DECLARATION
+
+```ts
+const XML_DECLARATION: "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+```
+
+XML declaration string

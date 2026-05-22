@@ -73,7 +73,7 @@ export class Node {
 
   /**
    * Removes a child node from the DOM and returns the removed node.
-   * @param node The child node to be removed.
+   * @param child The child node to be removed.
    * @returns The removed child node.
    */
   removeChild (child: Node) {
