@@ -7,6 +7,7 @@ import { CDataNode } from './CDataNode.js';
 import { unescape } from './unescape.js';
 import { removeCR } from './removeCR.js';
 import { parseAttr } from './parseAttr.js';
+import { NamespaceError, ParserError } from './errors.js';
 
 const DEFAULTOPTIONS = {
   emptyDoc: false,
@@ -304,7 +305,7 @@ export function parseXML (
       }
     }
     if (elm.prefix && !doc.namespaces.getByPrefix(elm.prefix)) {
-      throw new Error('Unknown namespace prefix ' + elm.prefix);
+      throw new NamespaceError('Unknown namespace prefix ' + elm.prefix);
     }
   }
 
@@ -321,7 +322,7 @@ export function parseXML (
     // MUST: have version
     const attr = parseAttr(a, options.laxAttr);
     if (!attr.version) {
-      throw new Error('XML missing version');
+      throw new ParserError('XML missing version');
     }
     return false;
   });
@@ -339,7 +340,7 @@ export function parseXML (
   });
 
   if (root === NON_ELEMENT && !options.emptyDoc) {
-    throw new Error('no root tag found');
+    throw new ParserError('no root tag found');
   }
 
   let current: Element | null = root;
@@ -366,7 +367,7 @@ export function parseXML (
             return true;
           }
           const msg = `Expected </${current?.fullName}> got </${t}> in line ${posToLine(pos, xml)}`;
-          throw new Error(msg);
+          throw new ParserError(msg);
         })
         ||
         maybeMatchFn(fnTag, (_, t, a, c) => {
@@ -386,7 +387,7 @@ export function parseXML (
         })
       );
       if (pos === lastPos) {
-        throw new Error('Parser error');
+        throw new ParserError('Parser error');
       }
     }
     while (some && current && pos < xml.length);
@@ -397,12 +398,12 @@ export function parseXML (
 
   // file should be done
   if (xml.slice(pos)) {
-    throw new Error('DATA outside root node');
+    throw new ParserError('DATA outside root node');
   }
 
   // root should have been closed
   if (root !== NON_ELEMENT && !root.closed && current !== null) {
-    throw new Error(`Expected </${root.localName}> got EOF`);
+    throw new ParserError(`Expected </${root.localName}> got EOF`);
   }
 
   if (root !== NON_ELEMENT) {

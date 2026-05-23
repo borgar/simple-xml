@@ -1,4 +1,5 @@
 import type { Attr } from './Attr.ts';
+import { NotFoundError } from './errors.js';
 
 /**
  * Runtime class for {@link NamedNodeMap}. Kept un-exported so that the public
@@ -42,8 +43,7 @@ class NamedNodeMapImpl {
       const old = this.#attr.splice(existing, 1);
       return old[0];
     }
-    // XXX: DOMException
-    throw new Error(`NotFoundError: Failed to execute 'removeNamedItem' on 'NamedNodeMap': No item with name '${attrName}' was found.`);
+    throw new NotFoundError(`No attribute with name '${attrName}' was found.`);
   }
 
   get length () {

@@ -1,3 +1,5 @@
+import { NamespaceError } from './errors.js';
+
 export class NSMap {
   private uriToPres: Record<string, string[]> = {};
   private uriToPre: Record<string, string> = {};
@@ -24,7 +26,7 @@ export class NSMap {
   add (nsURI: string, nsPrefix: string) {
     // A prefix can only point to one URI — collisions are an error.
     if ((nsPrefix in this.preToUri) && (this.preToUri[nsPrefix] !== nsURI)) {
-      throw new Error(nsPrefix + ' already has a different URI');
+      throw new NamespaceError(nsPrefix + ' already has a different URI');
     }
     // Registering the same pair twice is a no-op.
     if ((nsURI in this.uriToPres) && this.uriToPres[nsURI].includes(nsPrefix)) {

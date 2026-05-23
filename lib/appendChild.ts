@@ -1,5 +1,6 @@
 import { DocumentFragment } from './DocumentFragment.ts';
 import type { Node } from './Node.js';
+import { HierarchyError } from './errors.js';
 
 export function appendChild (parent: Node | DocumentFragment, child: Node | DocumentFragment) {
   if (child instanceof DocumentFragment) {
@@ -10,7 +11,7 @@ export function appendChild (parent: Node | DocumentFragment, child: Node | Docu
   }
   else if (parent === child) {
     // XXX: there should really be a more elaborate tests here to determine that child does not contain parent
-    throw new Error('The new child element contains the parent.');
+    throw new HierarchyError('The new child element contains the parent.');
   }
   else if (parent instanceof DocumentFragment) {
     // appending to a fragment does not mess with the node's parentage

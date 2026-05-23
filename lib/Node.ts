@@ -1,5 +1,6 @@
 import { appendChild } from './appendChild.js';
 import { DocumentFragment } from './DocumentFragment.ts';
+import { NotFoundError } from './errors.js';
 import { prettyPrint } from './prettyPrint.js';
 
 /**
@@ -37,10 +38,10 @@ export class Node {
    */
   appendChild<T extends Node | DocumentFragment> (node: T): T {
     if (!node) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     if (!(node instanceof Node) && !(node instanceof DocumentFragment)) {
-      throw new Error('Cannot appendChild: Child is not a node');
+      throw new TypeError('Cannot appendChild: Child is not a node');
     }
     appendChild(this, node);
     return node;
@@ -82,8 +83,7 @@ export class Node {
     }
     const index = this.childNodes.indexOf(child);
     if (index === -1) {
-      // DOMException
-      throw new Error('The node to be removed is not a child of this node.');
+      throw new NotFoundError('The node to be removed is not a child of this node.');
     }
     const node = this.childNodes.splice(index, 1).at(0);
     if (node) {

@@ -9,6 +9,13 @@ export { escape as escapeXML } from './escape.ts';
 export { isElement } from './isElement.ts';
 export { prettyPrint } from './prettyPrint.ts';
 export { simplePrint } from './simplePrint.ts';
+export {
+  XMLError,
+  ParserError,
+  NamespaceError,
+  HierarchyError,
+  NotFoundError
+} from './errors.ts';
 export type { CreateChildArgument } from './CreateChildArgument.js';
 export type { XMLAttr } from './XMLAttr.js';
 export type { JsonMLElement, JsonMLAttr } from './JsonML.js';

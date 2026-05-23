@@ -5,6 +5,7 @@ import type { Node } from './Node.js';
 import type { TextNode } from './TextNode.ts';
 import { CDATA_SECTION_NODE, DOCUMENT_NODE, TEXT_NODE } from './constants.js';
 import { escape } from './escape.js';
+import { HierarchyError } from './errors.js';
 import { isElement } from './isElement.ts';
 
 /**
@@ -20,7 +21,7 @@ export function simplePrint (node: Node | DocumentFragment): string {
   }
   if (node.nodeType === DOCUMENT_NODE) {
     const root = (node as Document).root;
-    if (!root) throw new Error('root element is missing');
+    if (!root) throw new HierarchyError('root element is missing');
     return simplePrint(root);
   }
   else if (node.nodeType === CDATA_SECTION_NODE) {

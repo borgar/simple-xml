@@ -231,7 +231,7 @@ export class Element extends Node {
    */
   getElementsByTagName (tagName: string): Element[] {
     if (!tagName) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     // @ts-ignore
     return findAll(this, tagName, []);
@@ -245,7 +245,7 @@ export class Element extends Node {
    */
   querySelector (selector: string): Element | null {
     if (!selector) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return domQuery(this, selector)[0] || null;
   }
@@ -258,7 +258,7 @@ export class Element extends Node {
    */
   querySelectorAll (selector: string): Element[] {
     if (!selector) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return domQuery(this, selector);
   }

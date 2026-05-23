@@ -12,6 +12,7 @@ import { prettyPrint } from './prettyPrint.ts';
 import { simplePrint } from './simplePrint.ts';
 import type { CreateChildArgument } from './CreateChildArgument.ts';
 import type { XMLAttr } from './XMLAttr.ts';
+import { HierarchyError, NamespaceError } from './errors.js';
 
 /**
  * This class describes an XML document.
@@ -112,7 +113,7 @@ export class Document extends Node {
   ): Element => {
     const ns = this.namespaces.get(namespaceURI);
     if (ns == null) {
-      throw new Error('Unknown namespace ' + namespaceURI);
+      throw new NamespaceError('Unknown namespace ' + namespaceURI);
     }
     const element = new Element(ns ? ns + ':' + qualifiedName : qualifiedName);
     element.setAttrValues(attr ?? null);
@@ -130,7 +131,7 @@ export class Document extends Node {
    */
   getElementsByTagName (tagName: string): Element[] {
     if (!tagName) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return findAll(this, tagName, []);
   }
@@ -143,7 +144,7 @@ export class Document extends Node {
    */
   querySelector (selector: string): Element | null {
     if (!selector) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return domQuery(this, selector)[0] || null;
   }
@@ -156,7 +157,7 @@ export class Document extends Node {
    */
   querySelectorAll (selector: string): Element[] {
     if (!selector) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return domQuery(this, selector);
   }
@@ -164,12 +165,12 @@ export class Document extends Node {
   // overwrites super
   appendChild<T extends Node | DocumentFragment> (node: T): T {
     if (this.root || (node instanceof DocumentFragment && node.childNodes.length > 1)) {
-      throw new Error('A document must have only one child element.');
+      throw new HierarchyError('A document must have only one child element.');
     }
     let root: Element;
     if (node instanceof DocumentFragment) {
       if (!(node.childNodes[0] instanceof Element)) {
-        throw new Error('Document root node must be an Element');
+        throw new HierarchyError('Document root node must be an Element');
       }
       root = node.childNodes[0];
     }
@@ -177,7 +178,7 @@ export class Document extends Node {
       root = node;
     }
     else {
-      throw new Error('Document root node must be an Element');
+      throw new HierarchyError('Document root node must be an Element');
     }
     appendChild(this, root);
     this.root = root;
@@ -202,7 +203,7 @@ export class Document extends Node {
    */
   print (pretty = false): string {
     if (!(this.root instanceof Element)) {
-      throw new Error('root element is missing');
+      throw new HierarchyError('root element is missing');
     }
     return `${XML_DECLARATION}\n` + (
       pretty ? prettyPrint(this.root) : simplePrint(this.root)

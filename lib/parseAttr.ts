@@ -1,4 +1,5 @@
 import { unescape } from './unescape.js';
+import { ParserError } from './errors.js';
 
 function isWS (ch: string): boolean {
   return (
@@ -64,7 +65,7 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
       // start-tag or empty-element tag.
       // The replacement text of any entity referred to directly or
       // indirectly in an attribute value MUST NOT contain a <.
-      throw new Error('Attribute error: expected name');
+      throw new ParserError('Attribute error: expected name');
     }
 
     const nameEnd = i;
@@ -79,7 +80,7 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
         r[s.slice(nameStart, nameEnd)] = '';
         continue;
       }
-      throw new Error('Attribute error: expected =');
+      throw new ParserError('Attribute error: expected =');
     }
 
     i += skipWS(s, i);
@@ -98,7 +99,7 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
       fnSeek = isWS;
     }
     else {
-      throw new Error('Attribute error: expected value');
+      throw new ParserError('Attribute error: expected value');
     }
 
     const startValue = i;
@@ -118,7 +119,7 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
         r[key] = unescape(s.slice(startValue, n));
         break;
       }
-      throw new Error('Attribute error: unterminated value');
+      throw new ParserError('Attribute error: unterminated value');
     }
 
     r[s.slice(nameStart, nameEnd)] = unescape(s.slice(startValue, endValue));
@@ -126,7 +127,7 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
     const j = i;
     i += skipWS(s, i);
     if (i === j && i < n) {
-      throw new Error('Attribute error: expected space');
+      throw new ParserError('Attribute error: expected space');
     }
   }
   while (i < n);
