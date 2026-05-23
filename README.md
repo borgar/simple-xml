@@ -8,7 +8,7 @@ There are some limitations:
 
 - Comments are discarded.
 - Processing instructions are discarded.
-- Namespace prefixes are preserved but otherwise ignored.
+- Namespace prefixes are preserved on every node; full xmlns validation is opt-in via the `ns` parse option.
 - Doctypes are discarded.
 - Nested doctypes are not supported and will cause errors.
 - Nodes have a limited interface.
@@ -34,10 +34,10 @@ $ npm i @borgar/simple-xml
 import { parseXML } from '@borgar/simple-xml';
 
 const dom = parseXML('<root><node>Lorem ipsum</node></root>');
-console.log(dom.getElementsByTagName('node').textContent);
+console.log(dom.getElementsByTagName('node')[0].textContent);
 ```
 
-The parse function accepts two arguments, the first is an XML source. The second is an options object. There are two options:
+The parse function accepts two arguments, the first is an XML source. The second is an options object. There are three options:
 
 Allow normally forbidden unquoted attributes with `laxAttr`:
 
@@ -51,7 +51,13 @@ Allow normally forbidden "rootless" documents with `emptyDoc`:
 parseXML('', { emptyDoc: true });
 ```
 
-As well as a parse method, the package exports Node classes: Node, Element, Document, TextNode, and CDataNode. They are pretty much what you expect but with an incomplete or altered set of DOM API functions.
+Validate `xmlns` declarations and element/attribute prefixes against them with `ns`. With this flag, an unknown prefix or a re-bound prefix throws a `NamespaceError`:
+
+```js
+parseXML('<root xmlns:x="urn:example"><x:node /></root>', { ns: true });
+```
+
+As well as a parse method, the package exports the node classes (`Node`, `Element`, `Document`, `DocumentFragment`, `TextNode`, `CDataNode`), serialization helpers (`prettyPrint`, `simplePrint`, `escapeXML`), the `isElement` type guard, and an error hierarchy rooted at `XMLError` (`ParserError`, `NamespaceError`, `HierarchyError`, `NotFoundError`). The node classes are pretty much what you'd expect but with an "incomplete" or altered set of DOM API functions.
 
 [See the API documentation.](API.md)
 
@@ -68,20 +74,24 @@ As well as a parse method, the package exports Node classes: Node, Element, Docu
 * `.nodeType`
   A node type number (e.g. `Element.ELEMENT_NODE === 1`)
 
-* `.ns`
-  A namespace identifier (`foo` in the case of `<foo:bar>`)
+* `.prefix`
+  The namespace prefix of the element, or `null` if it has none (`foo` in the case of `<foo:bar>`).
+
+* `.localName`
+  The tag name with any namespace prefix stripped (`bar` in the case of `<foo:bar>`).
 
 * `.fullName`
-  A full tag name with identifier (`foo:bar` in the case of `<foo:bar>`)
+  The full tag name including the prefix (`foo:bar` in the case of `<foo:bar>`).
 
 **Attributes**
 
 * `.getAttribute( attrName )`
 * `.setAttribute( attrName, attrValue )`
 * `.hasAttribute( attrName )`
+* `.hasAttributes()`
 * `.removeAttribute( attrName )`
-
-Attributes are not stored as attribute nodes in a list, but rather they are a simple `{ name: value }` style object on the node.
+* `.attributes`
+  A `NamedNodeMap` of `Attr` nodes — iterable, indexable by name (`el.attributes.foo` returns the `Attr`), and with DOM-style `getNamedItem` / `setNamedItem` / `removeNamedItem` methods.
 
 **Tree & traversal**
 
@@ -105,6 +115,9 @@ Attributes are not stored as attribute nodes in a list, but rather they are a si
 * `.getElementsByTagName( tagName )`
   Lists all Elements in the target's subtree, traversal order, that have `.tagName` equal to the argument. Function is case-sensitive.
 
+* `.querySelector( cssSelector )`
+  Returns the first Element in the target's subtree, traversal order, that matches the supplied CSS selector, or `null` if none match.
+
 * `.querySelectorAll( cssSelector )`
   Lists all Elements in the target's subtree, traversal order, that match the supplied CSS selector. Function should be case-sensitive but may be case insensitive for some.
 
@@ -123,19 +136,19 @@ It will parse to a document which has a `.root` node looking roughly like this:
 {
   nodeType: 1,
   nodeName: 'TAG',
-  ns: 'x',
+  prefix: 'x',
+  localName: 'tag',
   tagName: 'tag',
   fullName: 'x:tag',
-  attr: { 'foo': 'bar' }
+  attributes: NamedNodeMap { /* Attr { name: 'foo', value: 'bar' } */ },
   parentNode: null,
-  childNodes = [
+  childNodes: [
     {
       nodeName: '#text',
       nodeType: 3,
-      value: 'Text content',
+      data: 'Text content',
       parentNode: {...},
     }
   ]
 }
 ```
-

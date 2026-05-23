@@ -9,8 +9,13 @@
 - [Document](#classesdocumentmd)
 - [DocumentFragment](#classesdocumentfragmentmd)
 - [Element](#classeselementmd)
+- [HierarchyError](#classeshierarchyerrormd)
+- [NamespaceError](#classesnamespaceerrormd)
 - [Node](#classesnodemd)
+- [NotFoundError](#classesnotfounderrormd)
+- [ParserError](#classesparsererrormd)
 - [TextNode](#classestextnodemd)
+- [XMLError](#classesxmlerrormd)
 
 ## Type Aliases
 
@@ -85,7 +90,7 @@ Constructs a new CDataNode instance.
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
 | <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
 | <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
-| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Document`](#classesdocumentmd).[`parentNode`](#parentnode) |
 | <a id="value"></a> `value` | `string` | `undefined` | The nodes data value. | - |
 
 ## Accessors
@@ -106,7 +111,7 @@ Returns the node's first child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Node`](#classesnodemd).[`firstChild`](#firstchild)
+[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
 
 ***
 
@@ -126,7 +131,7 @@ Returns the node's last child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Node`](#classesnodemd).[`lastChild`](#lastchild)
+[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
 
 ***
 
@@ -851,15 +856,14 @@ Constructs a new Element instance.
 
 | Property | Type | Default value | Description | Overrides | Inherited from |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="attr"></a> `attr` | `Record`\<`string`, `string`\> | `undefined` | An object of attributes assigned to this element. | - | - |
+| <a id="attributes"></a> `attributes` | `NamedNodeMap` | `undefined` | A list of attributes assigned to this element. | - | - |
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | - | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
 | <a id="closed"></a> `closed` | `boolean` | `undefined` | A state representing if the element was "self-closed" when read. | - | - |
-| <a id="fullname"></a> `fullName` | `string` | `undefined` | The full name of the tag for the given element, including a namespace prefix. | - | - |
+| <a id="localname"></a> `localName` | `string` | `undefined` | The name of the tag for the given element, excluding any namespace prefix. | - | - |
 | <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | - | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
 | <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | - | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
-| <a id="ns"></a> `ns` | `string` | `undefined` | The namespace prefix of the element, or null if no prefix is specified. | - | - |
-| <a id="parentnode"></a> `parentNode` | `Element` \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) | - |
-| <a id="tagname"></a> `tagName` | `string` | `undefined` | The name of the tag for the given element, excluding any namespace prefix. | - | - |
+| <a id="parentnode"></a> `parentNode` | `Element` \| `null` | `null` | The node's parent node. | [`Document`](#classesdocumentmd).[`parentNode`](#parentnode) | - |
+| <a id="prefix"></a> `prefix` | `string` \| `null` | `undefined` | The namespace prefix of the element, or null' if no prefix is specified. | - | - |
 
 ## Accessors
 
@@ -925,7 +929,7 @@ Returns the node's first child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Node`](#classesnodemd).[`firstChild`](#firstchild)
+[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
 
 ***
 
@@ -945,6 +949,22 @@ Returns an element's first child Element, or null if there are no child elements
 
 ***
 
+### fullName
+
+#### Get Signature
+
+```ts
+get fullName(): string;
+```
+
+The full name of the tag for the given element, including a namespace prefix.
+
+##### Returns
+
+`string`
+
+***
+
 ### lastChild
 
 #### Get Signature
@@ -961,7 +981,7 @@ Returns the node's last child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Node`](#classesnodemd).[`lastChild`](#lastchild)
+[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
 
 ***
 
@@ -982,6 +1002,20 @@ True if xml:space has been set to true for this node or any of its ancestors.
 #### Overrides
 
 [`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
+
+***
+
+### tagName
+
+#### Get Signature
+
+```ts
+get tagName(): string;
+```
+
+##### Returns
+
+`string`
 
 ***
 
@@ -1155,6 +1189,18 @@ Test if an attribute exists on the element.
 `boolean`
 
 True if the attribute is present.
+
+***
+
+### hasAttributes()
+
+```ts
+hasAttributes(): boolean;
+```
+
+#### Returns
+
+`boolean`
 
 ***
 
@@ -1402,6 +1448,284 @@ A formatted XML source.
 [`Node`](#classesnodemd).[`toString`](#tostring)
 
 
+<a name="classeshierarchyerrormd"></a>
+
+# HierarchyError
+
+Thrown when an operation would violate the structure of the document
+tree: e.g. inserting an ancestor as a descendant, giving a Document
+more than one root, or requiring a root that isn't present.
+
+## Extends
+
+- [`XMLError`](#classesxmlerrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new HierarchyError(message: string): HierarchyError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`HierarchyError`
+
+#### Overrides
+
+[`XMLError`](#classesxmlerrormd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | [`XMLError`](#classesxmlerrormd).[`cause`](#cause) |
+| <a id="message"></a> `message` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`message`](#message) |
+| <a id="name"></a> `name` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`name`](#name) |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`stack`](#stack) |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | [`XMLError`](#classesxmlerrormd).[`stackTraceLimit`](#stacktracelimit) |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`captureStackTrace`](#capturestacktrace)
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`prepareStackTrace`](#preparestacktrace)
+
+
+<a name="classesnamespaceerrormd"></a>
+
+# NamespaceError
+
+Thrown for namespace-related problems: an unknown prefix, a prefix
+re-bound to a different URI, or a lookup for a URI that hasn't been
+declared.
+
+## Extends
+
+- [`XMLError`](#classesxmlerrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new NamespaceError(message: string): NamespaceError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`NamespaceError`
+
+#### Overrides
+
+[`XMLError`](#classesxmlerrormd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | [`XMLError`](#classesxmlerrormd).[`cause`](#cause) |
+| <a id="message"></a> `message` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`message`](#message) |
+| <a id="name"></a> `name` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`name`](#name) |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`stack`](#stack) |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | [`XMLError`](#classesxmlerrormd).[`stackTraceLimit`](#stacktracelimit) |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`captureStackTrace`](#capturestacktrace)
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`prepareStackTrace`](#preparestacktrace)
+
+
 <a name="classesnodemd"></a>
 
 # Node
@@ -1596,6 +1920,283 @@ Returns a string representation of the node.
 A formatted XML source.
 
 
+<a name="classesnotfounderrormd"></a>
+
+# NotFoundError
+
+Thrown when an item referenced by name or identity cannot be found
+(e.g. removing a child that isn't a child, or a named attribute that
+isn't in the map).
+
+## Extends
+
+- [`XMLError`](#classesxmlerrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new NotFoundError(message: string): NotFoundError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`NotFoundError`
+
+#### Overrides
+
+[`XMLError`](#classesxmlerrormd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | [`XMLError`](#classesxmlerrormd).[`cause`](#cause) |
+| <a id="message"></a> `message` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`message`](#message) |
+| <a id="name"></a> `name` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`name`](#name) |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`stack`](#stack) |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | [`XMLError`](#classesxmlerrormd).[`stackTraceLimit`](#stacktracelimit) |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`captureStackTrace`](#capturestacktrace)
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`prepareStackTrace`](#preparestacktrace)
+
+
+<a name="classesparsererrormd"></a>
+
+# ParserError
+
+Thrown when XML input cannot be parsed: malformed attributes, missing
+declarations, premature EOF, content outside the root element, etc.
+
+## Extends
+
+- [`XMLError`](#classesxmlerrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new ParserError(message: string): ParserError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`ParserError`
+
+#### Overrides
+
+[`XMLError`](#classesxmlerrormd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | [`XMLError`](#classesxmlerrormd).[`cause`](#cause) |
+| <a id="message"></a> `message` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`message`](#message) |
+| <a id="name"></a> `name` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`name`](#name) |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`stack`](#stack) |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | [`XMLError`](#classesxmlerrormd).[`stackTraceLimit`](#stacktracelimit) |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`captureStackTrace`](#capturestacktrace)
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`prepareStackTrace`](#preparestacktrace)
+
+
 <a name="classestextnodemd"></a>
 
 # TextNode
@@ -1635,10 +2236,10 @@ Constructs a new TextNode instance.
 | Property | Type | Default value | Description | Inherited from |
 | ------ | ------ | ------ | ------ | ------ |
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="data"></a> `data` | `string` | `undefined` | The node's data value. | - |
 | <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
 | <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
 | <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Document`](#classesdocumentmd).[`parentNode`](#parentnode) |
-| <a id="value"></a> `value` | `string` | `undefined` | The node's data value. | - |
 
 ## Accessors
 
@@ -1658,7 +2259,7 @@ Returns the node's first child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`CDataNode`](#classescdatanodemd).[`firstChild`](#firstchild)
+[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
 
 ***
 
@@ -1678,7 +2279,37 @@ Returns the node's last child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`CDataNode`](#classescdatanodemd).[`lastChild`](#lastchild)
+[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
+
+***
+
+### nodeValue
+
+#### Get Signature
+
+```ts
+get nodeValue(): string;
+```
+
+##### Returns
+
+`string`
+
+#### Set Signature
+
+```ts
+set nodeValue(value: string): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `value` | `string` |
+
+##### Returns
+
+`void`
 
 ***
 
@@ -1830,6 +2461,157 @@ A formatted XML source.
 #### Inherited from
 
 [`Node`](#classesnodemd).[`toString`](#tostring)
+
+
+<a name="classesxmlerrormd"></a>
+
+# XMLError
+
+Base class for all errors thrown by this library. Catching `XMLError`
+will catch any of the library's specific error subclasses.
+
+## Extends
+
+- `Error`
+
+## Extended by
+
+- [`ParserError`](#classesparsererrormd)
+- [`NamespaceError`](#classesnamespaceerrormd)
+- [`HierarchyError`](#classeshierarchyerrormd)
+- [`NotFoundError`](#classesnotfounderrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new XMLError(message: string): XMLError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`XMLError`
+
+#### Overrides
+
+```ts
+Error.constructor
+```
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | `Error.cause` |
+| <a id="message"></a> `message` | `public` | `string` | - | `Error.message` |
+| <a id="name"></a> `name` | `public` | `string` | - | `Error.name` |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | `Error.stack` |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | `Error.stackTraceLimit` |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+```ts
+Error.captureStackTrace
+```
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+```ts
+Error.prepareStackTrace
+```
 
 
 <a name="functionsescapexmlmd"></a>
