@@ -9,9 +9,9 @@ import type { CreateChildArgument } from './CreateChildArgument.ts';
 import { prettyPrint } from './prettyPrint.ts';
 import { simplePrint } from './simplePrint.ts';
 import type { XMLAttr } from './XMLAttr.ts';
-
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+import { createNamedNodeMap, type NamedNodeMap } from './NamedNodeMap.ts';
+import { Attr } from './Attr.ts';
+import { splitTagName } from './splitTagName.ts';
 
 /**
  * A class describing an Element.
@@ -19,18 +19,16 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
  * @augments Node
  */
 export class Element extends Node {
-  /** The namespace prefix of the element, or null if no prefix is specified. */
-  ns: string;
+  /** The namespace prefix of the element, or null' if no prefix is specified. */
+  prefix: string | null;
   /** The name of the tag for the given element, excluding any namespace prefix. */
-  tagName: string;
-  /** The full name of the tag for the given element, including a namespace prefix. */
-  fullName: string;
+  localName: string;
   /** A state representing if the element was "self-closed" when read. */
   closed: boolean;
-  /** An object of attributes assigned to this element. */
-  attr: Record<string, string>;
   /** The node's parent node. */
   parentNode: Element | null = null;
+  /** A list of attributes assigned to this element. */
+  attributes: NamedNodeMap;
 
   /**
    * Constructs a new Element instance.
@@ -41,27 +39,40 @@ export class Element extends Node {
    */
   constructor (tagName: string, attr?: XMLAttr | null, closed: boolean = false) {
     super();
-    let tagName_ = tagName;
-    let ns: string | null = null;
-    if (tagName.includes(':')) {
-      [ ns, tagName_ ] = tagName.split(':');
-    }
-    this.ns = ns || '';
-    this.tagName = tagName_;
-    this.fullName = tagName;
+
+    const [ prefix, localName ] = splitTagName(tagName);
+    this.prefix = prefix;
+    this.localName = localName;
+
     this.closed = !!closed;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.attr = Object.create(null);
+
+    this.attributes = createNamedNodeMap();
     this.setAttrValues(attr ?? null);
+
     // inherited instance props from Node
-    this.nodeName = this.tagName.toUpperCase();
+    this.nodeName = this.localName.toUpperCase();
     this.nodeType = ELEMENT_NODE;
     this.childNodes = [];
   }
 
+  get tagName () {
+    return this.localName;
+  }
+
+  /** The full name of the tag for the given element, including a namespace prefix. */
+  get fullName () {
+    return this.prefix
+      ? this.prefix + ':' + this.localName
+      : this.localName;
+  }
+
+  hasAttributes () {
+    return !!this.attributes.length;
+  }
+
   // overwrites super
   get preserveSpace (): boolean {
-    if (this.attr?.['xml:space'] === 'preserve') {
+    if (this.getAttribute('xml:space') === 'preserve') {
       return true;
     }
     if (this.parentNode) {
@@ -96,7 +107,7 @@ export class Element extends Node {
    * @returns The attribute.
    */
   getAttribute (name: string): string | null {
-    return this.hasAttribute(name) ? this.attr[name] : null;
+    return this.attributes.getNamedItem(name)?.value ?? null;
   }
 
   /**
@@ -106,7 +117,7 @@ export class Element extends Node {
    * @param value The value to set
    */
   setAttribute (name: string, value: string | number | boolean) {
-    this.attr[name] = String(value);
+    this.attributes.setNamedItem(new Attr(name, value));
   }
 
   /**
@@ -116,7 +127,7 @@ export class Element extends Node {
    * @returns True if the attribute is present.
    */
   hasAttribute (name: string): boolean {
-    return this.attr && hasOwnProperty.call(this.attr, name);
+    return this.attributes.getNamedItem(name) != null;
   }
 
   /**
@@ -141,7 +152,7 @@ export class Element extends Node {
    * @param name The attribute name to remove.
    */
   removeAttribute (name: string) {
-    delete this.attr[name];
+    this.attributes.removeNamedItem(name);
   }
 
   get className (): string {
@@ -203,7 +214,7 @@ export class Element extends Node {
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element {
     const elm = new Element(qualifiedName);
-    elm.ns ??= this.ns;
+    elm.prefix ??= this.prefix;
     elm.setAttrValues(attr ?? null);
     this.appendChild(elm);
     for (const child of children) {

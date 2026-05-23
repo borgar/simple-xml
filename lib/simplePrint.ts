@@ -27,7 +27,7 @@ export function simplePrint (node: Node | DocumentFragment): string {
     return `<![CDATA[${(node as CDataNode).value.replace(/]]>/g, ']]&gt;')}]]>`;
   }
   else if (node.nodeType === TEXT_NODE) {
-    return escape((node as TextNode).value);
+    return escape((node as TextNode).data);
   }
   else if (isElement(node)) {
     const tagName = node.fullName;
@@ -38,9 +38,8 @@ export function simplePrint (node: Node | DocumentFragment): string {
     }
     let attrList = '';
     if (isElement(node)) {
-      const attr = node.attr;
-      for (const [ key, val ] of Object.entries(attr)) {
-        attrList += ` ${escape(key)}="${escape(val)}"`;
+      for (const attr of node.attributes) {
+        attrList += ` ${attr.fullName}="${escape(attr.value)}"`;
       }
     }
     return children

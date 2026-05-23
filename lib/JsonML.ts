@@ -20,9 +20,13 @@ export function JsonML (node: Element): JsonMLElement {
   // name of the element
   const n: JsonMLElement = [ node.fullName ?? node.nodeName ];
   // it's attributes as an object
-  if (node.attr && Object.keys(node.attr).length) {
+  if (node.attributes?.length) {
+    const attr: JsonMLAttr = {};
+    for (const a of node.attributes) {
+      attr[a.fullName] = a.value;
+    }
     // @ts-expect-error -- TS has trouble figuring out how this is built
-    n.push(Object.assign({}, node.attr) as JsonMLAttr);
+    n.push(attr);
   }
   // it's content
   if (node.childNodes?.length) {

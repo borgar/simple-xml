@@ -10,7 +10,8 @@ import { parseAttr } from './parseAttr.js';
 
 const DEFAULTOPTIONS = {
   emptyDoc: false,
-  laxAttr: false
+  laxAttr: false,
+  ns: false
 };
 
 const NON_ELEMENT = new Element('#');
@@ -294,16 +295,16 @@ export function parseXML (
   }
 
   function checkNS (elm: Element) {
-    for (const key in elm.attr) {
-      if (key === 'xmlns') {
-        doc.attachNS(elm.attr[key], '');
+    for (const attr of elm.attributes) {
+      if (attr.localName === 'xmlns') {
+        doc.attachNS(attr.value, '');
       }
-      if (key.startsWith('xmlns:')) {
-        doc.attachNS(elm.attr[key], key.slice(6));
+      if (attr.prefix === 'xmlns') {
+        doc.attachNS(attr.value, attr.localName);
       }
     }
-    if (elm.ns && !doc.namespaces.getByPrefix(elm.ns)) {
-      throw new Error('Unknown namespace prefix ' + elm.ns);
+    if (elm.prefix && !doc.namespaces.getByPrefix(elm.prefix)) {
+      throw new Error('Unknown namespace prefix ' + elm.prefix);
     }
   }
 
@@ -401,7 +402,7 @@ export function parseXML (
 
   // root should have been closed
   if (root !== NON_ELEMENT && !root.closed && current !== null) {
-    throw new Error(`Expected </${root.tagName}> got EOF`);
+    throw new Error(`Expected </${root.localName}> got EOF`);
   }
 
   if (root !== NON_ELEMENT) {

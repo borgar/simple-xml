@@ -9,16 +9,18 @@ import { isElement } from './isElement.ts';
 function printAttributes (node: Node): string {
   let attrList = '';
   if (isElement(node)) {
-    const attr = node.attr;
-    for (const [ key, val ] of Object.entries(attr)) {
-      attrList += ` ${key}="${escape(val)}"`;
+    for (const attr of node.attributes) {
+      attrList += ` ${attr.fullName}="${escape(attr.value)}"`;
     }
+    // for (const [ key, val ] of Object.entries(attr)) {
+    //   attrList += ` ${key}="${escape(val)}"`;
+    // }
   }
   return attrList;
 }
 
 function printTextNode (node: TextNode): string {
-  return escape(node.value);
+  return escape(node.data);
 }
 
 function printCData (node: CDataNode) {
