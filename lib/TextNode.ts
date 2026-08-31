@@ -8,22 +8,31 @@ import { TEXT_NODE } from './constants.js';
  */
 export class TextNode extends Node {
   /** The node's data value. */
-  value: string;
+  data: string;
 
   /**
    * Constructs a new TextNode instance.
-   * @param {string} [value] The data for the node
+   *
+   * @param [value] The data for the node.
    */
-  constructor (value: string) {
+  constructor (value: any) {
     super();
     this.nodeName = '#text';
     this.nodeType = TEXT_NODE;
-    this.value = value || '';
+    this.data = String(value);
+  }
+
+  get nodeValue () {
+    return this.data;
+  }
+
+  set nodeValue (value) {
+    this.data = String(value);
   }
 
   // overwrites super
   get textContent () {
-    const s = this.value;
+    const s = this.data;
     // pure whitespace nodes are ignored when xml:space="default"
     if (!/[^\r\n\t ]/.test(s)) {
       return this.preserveSpace ? s : '';

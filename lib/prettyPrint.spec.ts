@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Element, parseXML, TextNode } from '../lib/index.js';
+import { Element, parseXML, TextNode } from './index.ts';
 
 describe('prettyPrint', () => {
   it('simple tag', () => {

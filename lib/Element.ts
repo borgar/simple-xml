@@ -1,12 +1,17 @@
 import { Node } from './Node.js';
-import { ELEMENT_NODE } from './constants.js';
+import { ELEMENT_NODE, XML_DECLARATION } from './constants.js';
 import { JsonML, type JsonMLElement } from './JsonML.js';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
 import { isElement } from './isElement.ts';
-
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+import { TextNode } from './TextNode.ts';
+import type { CreateChildArgument } from './CreateChildArgument.ts';
+import { prettyPrint } from './prettyPrint.ts';
+import { simplePrint } from './simplePrint.ts';
+import type { XMLAttr } from './XMLAttr.ts';
+import { createNamedNodeMap, type NamedNodeMap } from './NamedNodeMap.ts';
+import { Attr } from './Attr.ts';
+import { splitTagName } from './splitTagName.ts';
 
 /**
  * A class describing an Element.
@@ -14,49 +19,60 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
  * @augments Node
  */
 export class Element extends Node {
-  /** The namespace prefix of the element, or null if no prefix is specified. */
-  ns: string;
+  /** The namespace prefix of the element, or null' if no prefix is specified. */
+  prefix: string | null;
   /** The name of the tag for the given element, excluding any namespace prefix. */
-  tagName: string;
-  /** The full name of the tag for the given element, including a namespace prefix. */
-  fullName: string;
+  localName: string;
   /** A state representing if the element was "self-closed" when read. */
   closed: boolean;
-  /** An object of attributes assigned to this element. */
-  attr: Record<string, string>;
   /** The node's parent node. */
   parentNode: Element | null = null;
+  /** A list of attributes assigned to this element. */
+  attributes: NamedNodeMap;
 
   /**
    * Constructs a new Element instance.
    *
    * @param tagName The tag name of the node.
-   * @param [attr={}] A collection of attributes to assign.
+   * @param [attr={}] A collection of attributes to assign. Values of null or undefined will be ignored.
    * @param [closed=false] Was the element "self-closed" when read.
    */
-  constructor (tagName: string, attr: Record<string, string> = {}, closed: boolean = false) {
+  constructor (tagName: string, attr?: XMLAttr | null, closed: boolean = false) {
     super();
-    let tagName_ = tagName;
-    let ns: string | null = null;
-    if (tagName.includes(':')) {
-      [ ns, tagName_ ] = tagName.split(':');
-    }
-    this.ns = ns || '';
-    this.tagName = tagName_;
-    this.fullName = tagName;
+
+    const [ prefix, localName ] = splitTagName(tagName);
+    this.prefix = prefix;
+    this.localName = localName;
+
     this.closed = !!closed;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.attr = Object.assign(Object.create(null), attr);
+
+    this.attributes = createNamedNodeMap();
+    this.setAttrValues(attr ?? null);
 
     // inherited instance props from Node
-    this.nodeName = this.tagName.toUpperCase();
+    this.nodeName = this.localName.toUpperCase();
     this.nodeType = ELEMENT_NODE;
     this.childNodes = [];
   }
 
+  get tagName () {
+    return this.localName;
+  }
+
+  /** The full name of the tag for the given element, including a namespace prefix. */
+  get fullName () {
+    return this.prefix
+      ? this.prefix + ':' + this.localName
+      : this.localName;
+  }
+
+  hasAttributes () {
+    return !!this.attributes.length;
+  }
+
   // overwrites super
   get preserveSpace (): boolean {
-    if (this.attr?.['xml:space'] === 'preserve') {
+    if (this.getAttribute('xml:space') === 'preserve') {
       return true;
     }
     if (this.parentNode) {
@@ -73,13 +89,25 @@ export class Element extends Node {
   }
 
   /**
+   * Returns an element's first child Element, or null if there are no child elements
+   */
+  get firstElementChild (): Element | null {
+    for (const child of this.childNodes) {
+      if (isElement(child)) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Read an attribute from the element.
    *
    * @param name The attribute name to read.
    * @returns The attribute.
    */
   getAttribute (name: string): string | null {
-    return this.hasAttribute(name) ? this.attr[name] : null;
+    return this.attributes.getNamedItem(name)?.value ?? null;
   }
 
   /**
@@ -88,8 +116,8 @@ export class Element extends Node {
    * @param name The attribute name to read.
    * @param value The value to set
    */
-  setAttribute (name: string, value: string) {
-    this.attr[name] = value;
+  setAttribute (name: string, value: string | number | boolean) {
+    this.attributes.setNamedItem(new Attr(name, value));
   }
 
   /**
@@ -99,7 +127,23 @@ export class Element extends Node {
    * @returns True if the attribute is present.
    */
   hasAttribute (name: string): boolean {
-    return this.attr && hasOwnProperty.call(this.attr, name);
+    return this.attributes.getNamedItem(name) != null;
+  }
+
+  /**
+   * Assign multiple attributes at once to the current elemeent.
+   *
+   * @param attr A record of attributes to assign to the element.
+   *             If the value is null or undefined, the attribute will be omitted.
+   */
+  setAttrValues (attr: XMLAttr | null) {
+    if (attr) {
+      for (const [ key, val ] of Object.entries(attr)) {
+        if (val != null) {
+          this.setAttribute(key, val);
+        }
+      }
+    }
   }
 
   /**
@@ -108,7 +152,75 @@ export class Element extends Node {
    * @param name The attribute name to remove.
    */
   removeAttribute (name: string) {
-    delete this.attr[name];
+    this.attributes.removeNamedItem(name);
+  }
+
+  get className (): string {
+    return this.getAttribute('class') ?? '';
+  }
+
+  set className (val: unknown) {
+    this.setAttribute('class', String(val));
+  }
+
+  /**
+   * Inserts a set of Node objects or strings after the last child of the Element.
+   * Strings are inserted as equivalent Text nodes.
+   */
+  append (...nodes: (CreateChildArgument | CreateChildArgument[])[]): void {
+    const flatNodes = nodes.flat();
+    for (const n of flatNodes) {
+      if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
+        this.appendChild(new TextNode(n));
+      }
+      else if (n) {
+        this.appendChild(n);
+      }
+    }
+  }
+
+  /**
+   * Insert a set of Node objects or strings before the first child of the Element.
+   * Strings are inserted as equivalent Text nodes.
+   */
+  prepend (...nodes: (CreateChildArgument | CreateChildArgument[])[]): void {
+    const flatNodes = nodes.flat();
+    for (const n of flatNodes) {
+      if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
+        this.insertBefore(new TextNode(n), this.firstChild);
+      }
+      else if (n) {
+        this.insertBefore(n, this.firstChild);
+      }
+    }
+  }
+
+  /**
+   * This method creates an element and immediately inserts it as a child of the element on which the
+   * method was called.
+   *
+   * The method implicitly creates the new element in the same namespace as the parent element.
+   *
+   * @param qualifiedName The local tagName of the element.
+   * @param attr A record of attributes to assign to the new element.
+   *             If the value is null or undefined, the attribute will be omitted.
+   * @param children Nodes to insert as children.
+   *                 Strings will be converted to TextNodes and arrays will be flattened.
+   * @returns A new Element instance.
+   */
+  createChild (
+    qualifiedName: string,
+    attr?: XMLAttr | null,
+    ...children: (CreateChildArgument | CreateChildArgument[])[]
+  ): Element {
+    const elm = new Element(qualifiedName);
+    elm.prefix ??= this.prefix;
+    elm.setAttrValues(attr ?? null);
+    this.appendChild(elm);
+    for (const child of children) {
+      elm.append(child);
+    }
+    return elm;
   }
 
   /**
@@ -119,7 +231,7 @@ export class Element extends Node {
    */
   getElementsByTagName (tagName: string): Element[] {
     if (!tagName) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     // @ts-ignore
     return findAll(this, tagName, []);
@@ -133,7 +245,7 @@ export class Element extends Node {
    */
   querySelector (selector: string): Element | null {
     if (!selector) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return domQuery(this, selector)[0] || null;
   }
@@ -146,7 +258,7 @@ export class Element extends Node {
    */
   querySelectorAll (selector: string): Element[] {
     if (!selector) {
-      throw new Error('1 argument required, but 0 present.');
+      throw new TypeError('1 argument required, but 0 present.');
     }
     return domQuery(this, selector);
   }
@@ -158,5 +270,17 @@ export class Element extends Node {
    */
   toJS (): JsonMLElement {
     return JsonML(this);
+  }
+
+  /**
+   * Print the document as a string.
+   *
+   * @param pretty Apply automatic linebreaks and indentation to the output.
+   * @returns The document as an XML string.
+   */
+  print (pretty = false): string {
+    return `${XML_DECLARATION}\n` + (
+      pretty ? prettyPrint(this) : simplePrint(this)
+    );
   }
 }

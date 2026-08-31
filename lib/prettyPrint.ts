@@ -1,5 +1,5 @@
 import type { CDataNode } from './CDataNode.ts';
-import type { Document } from './Document.ts';
+import { DocumentFragment } from './DocumentFragment.ts';
 import type { Node } from './Node.js';
 import type { TextNode } from './TextNode.ts';
 import { CDATA_SECTION_NODE, DOCUMENT_NODE, ELEMENT_NODE, TEXT_NODE } from './constants.js';
@@ -9,32 +9,49 @@ import { isElement } from './isElement.ts';
 function printAttributes (node: Node): string {
   let attrList = '';
   if (isElement(node)) {
-    const attr = node.attr;
-    for (const [ key, val ] of Object.entries(attr)) {
-      attrList += ` ${key}="${escape(val)}"`;
+    for (const attr of node.attributes) {
+      attrList += ` ${attr.fullName}="${escape(attr.value)}"`;
     }
+    // for (const [ key, val ] of Object.entries(attr)) {
+    //   attrList += ` ${key}="${escape(val)}"`;
+    // }
   }
   return attrList;
 }
 
 function printTextNode (node: TextNode): string {
-  return escape(node.value);
+  return escape(node.data);
 }
 
 function printCData (node: CDataNode) {
   return `<![CDATA[${node.value.replace(/]]>/g, ']]&gt;')}]]>`;
 }
 
-function printDocument (node: Node): string {
+function printDocument (node: Node | DocumentFragment): string {
   return node.childNodes
     .map(n => prettyPrint(n))
     .join('\n');
 }
 
-export function prettyPrint (node: Node, indent: string = ''): string {
+/**
+ * Serialize a node tree to an XML string with indentation and whitespace
+ * formatting for readability.
+ *
+ * Element children are placed on separate indented lines, except when the
+ * element preserves whitespace (`xml:space="preserve"`), contains only text
+ * nodes, or contains a single CDATA section.
+ *
+ * @param {Node | DocumentFragment} node The node to serialize.
+ * @param {string} [indent=''] The indentation applied to the current depth.
+ * @returns {string} The formatted XML string.
+ */
+export function prettyPrint (node: Node | DocumentFragment, indent: string = ''): string {
+  if (node instanceof DocumentFragment) {
+    return printDocument(node);
+  }
   const { preserveSpace } = node;
   if (node.nodeType === DOCUMENT_NODE) {
-    return printDocument(node as Document);
+    return printDocument(node);
   }
   else if (node.nodeType === CDATA_SECTION_NODE) {
     return printCData(node as CDataNode);
@@ -43,7 +60,7 @@ export function prettyPrint (node: Node, indent: string = ''): string {
     return printTextNode(node as TextNode);
   }
   else if (isElement(node)) {
-    const tagName = node.tagName;
+    const tagName = node.fullName;
     const { childNodes } = node;
     let children = '';
 

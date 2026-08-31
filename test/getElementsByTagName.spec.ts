@@ -35,7 +35,7 @@ describe('getElementByTagName', () => {
   <d o="8" />
 </a>
 `);
-    const m1 = dom.getElementsByTagName('d').map(d => +d.attr.o);
+    const m1 = dom.getElementsByTagName('d').map(d => +d.attributes.o.value);
     expect(m1).toEqual([ 1, 2, 3, 4, 5, 6, 7, 8 ]);
   });
 });

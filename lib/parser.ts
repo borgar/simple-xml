@@ -7,10 +7,12 @@ import { CDataNode } from './CDataNode.js';
 import { unescape } from './unescape.js';
 import { removeCR } from './removeCR.js';
 import { parseAttr } from './parseAttr.js';
+import { NamespaceError, ParserError } from './errors.js';
 
 const DEFAULTOPTIONS = {
   emptyDoc: false,
-  laxAttr: false
+  laxAttr: false,
+  ns: false
 };
 
 const NON_ELEMENT = new Element('#');
@@ -238,6 +240,7 @@ function posToLine (pos: number, src: string): number {
  * @param [options={}] Parsing options.
  * @param [options.emptyDoc=false] Permit "rootless" documents.
  * @param [options.laxAttr=false] Permit unquoted attributes (`<node foo=bar />`).
+ * @param [options.ns=false] Validate xmlns and element namespaces as they are parsed.
  * @returns A DOM representing the XML node tree.
  */
 export function parseXML (
@@ -245,11 +248,13 @@ export function parseXML (
   options: {
     emptyDoc?: boolean;
     laxAttr?: boolean;
+    ns?: boolean;
   } = DEFAULTOPTIONS
 ): Document {
   // 2.11: before parsing, translate both the two-character sequence
   // \r\n and any \r that is not followed by \n to a single \n
   const xml = removeCR(source);
+  const doc = new Document();
 
   let pos = 0;
   let root = NON_ELEMENT;
@@ -290,6 +295,20 @@ export function parseXML (
     while (m);
   }
 
+  function checkNS (elm: Element) {
+    for (const attr of elm.attributes) {
+      if (attr.localName === 'xmlns') {
+        doc.attachNS(attr.value, '');
+      }
+      if (attr.prefix === 'xmlns') {
+        doc.attachNS(attr.value, attr.localName);
+      }
+    }
+    if (elm.prefix && !doc.namespaces.getByPrefix(elm.prefix)) {
+      throw new NamespaceError('Unknown namespace prefix ' + elm.prefix);
+    }
+  }
+
   // BOM
   if (xml.charCodeAt(pos) === 65279) {
     pos++;
@@ -303,7 +322,7 @@ export function parseXML (
     // MUST: have version
     const attr = parseAttr(a, options.laxAttr);
     if (!attr.version) {
-      throw new Error('XML missing version');
+      throw new ParserError('XML missing version');
     }
     return false;
   });
@@ -316,11 +335,12 @@ export function parseXML (
   // root tag
   maybeMatchFn(fnTag, (_, t, a, c) => {
     root = new Element(t, parseAttr(a, options.laxAttr), !!c);
+    if (options.ns) checkNS(root);
     return true;
   });
 
   if (root === NON_ELEMENT && !options.emptyDoc) {
-    throw new Error('no root tag found');
+    throw new ParserError('no root tag found');
   }
 
   let current: Element | null = root;
@@ -347,11 +367,13 @@ export function parseXML (
             return true;
           }
           const msg = `Expected </${current?.fullName}> got </${t}> in line ${posToLine(pos, xml)}`;
-          throw new Error(msg);
+          throw new ParserError(msg);
         })
         ||
         maybeMatchFn(fnTag, (_, t, a, c) => {
-          const elm = new Element(t, parseAttr(a, options.laxAttr), !!c);
+          const attr = parseAttr(a, options.laxAttr);
+          const elm = new Element(t, attr, !!c);
+          if (options.ns) checkNS(elm);
           current?.appendChild(elm);
           if (!elm.closed) {
             current = elm;
@@ -365,7 +387,7 @@ export function parseXML (
         })
       );
       if (pos === lastPos) {
-        throw new Error('Parser error');
+        throw new ParserError('Parser error');
       }
     }
     while (some && current && pos < xml.length);
@@ -376,15 +398,14 @@ export function parseXML (
 
   // file should be done
   if (xml.slice(pos)) {
-    throw new Error('DATA outside root node');
+    throw new ParserError('DATA outside root node');
   }
 
   // root should have been closed
   if (root !== NON_ELEMENT && !root.closed && current !== null) {
-    throw new Error(`Expected </${root.tagName}> got EOF`);
+    throw new ParserError(`Expected </${root.localName}> got EOF`);
   }
 
-  const doc = new Document();
   if (root !== NON_ELEMENT) {
     doc.appendChild(root);
   }
