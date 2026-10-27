@@ -36,6 +36,7 @@ export class Element extends Node {
    * @param tagName The tag name of the node.
    * @param [attr={}] A collection of attributes to assign. Values of null or undefined will be ignored.
    * @param [closed=false] Was the element "self-closed" when read.
+   * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
   constructor (tagName: string, attr?: XMLAttr | null, closed: boolean = false) {
     super();
@@ -133,11 +134,19 @@ export class Element extends Node {
   /**
    * Assign multiple attributes at once to the current elemeent.
    *
-   * @param attr A record of attributes to assign to the element.
-   *             If the value is null or undefined, the attribute will be omitted.
+   * @param [attr] A record of attributes to assign to the element.
+   *               If the value is null or undefined, the attribute will be omitted.
+   * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
-  setAttrValues (attr: XMLAttr | null) {
-    if (attr) {
+  setAttrValues (attr?: XMLAttr | null) {
+    if (attr != null) {
+      if (
+        typeof attr !== 'object' ||
+        Array.isArray(attr) ||
+        Array.isArray((attr as { childNodes?: unknown }).childNodes)
+      ) {
+        throw new TypeError('Attributes must be an object of names and values, or null.');
+      }
       for (const [ key, val ] of Object.entries(attr)) {
         if (val != null) {
           this.setAttribute(key, val);
@@ -204,11 +213,12 @@ export class Element extends Node {
    * The method implicitly creates the new element in the same namespace as the parent element.
    *
    * @param qualifiedName The local tagName of the element.
-   * @param attr A record of attributes to assign to the new element.
-   *             If the value is null or undefined, the attribute will be omitted.
+   * @param [attr] A record of attributes to assign to the new element.
+   *               If the value is null or undefined, the attribute will be omitted.
    * @param children Nodes to insert as children.
    *                 Strings will be converted to TextNodes and arrays will be flattened.
    * @returns A new Element instance.
+   * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
   createChild (
     qualifiedName: string,

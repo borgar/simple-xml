@@ -100,15 +100,16 @@ export class Document extends Node {
    * Create a new element node.
    *
    * @param qualifiedName The local tagName of the element.
-   * @param attr A record of attributes to assign to the new element.
-   *             If the value is null or undefined, the attribute will be omitted.
+   * @param [attr] A record of attributes to assign to the new element.
+   *               If the value is null or undefined, the attribute will be omitted.
    * @param children Nodes to insert as children.
    *                 Strings will be converted to TextNodes and arrays will be flattened.
    * @returns A new Element instance.
+   * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
   createElement = (
     qualifiedName: string,
-    attr: XMLAttr | null | undefined,
+    attr?: XMLAttr | null,
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
     const element = new Element(qualifiedName);
@@ -122,18 +123,19 @@ export class Document extends Node {
   /**
    * Create a new element node associated with a given namespace.
    *
-  * @param namespaceURI The namespaceURI to associate with the element.
-  * @param qualifiedName The local tagName of the element.
-  * @param attr A record of attributes to assign to the new element.
-  *             If the value is null or undefined, the attribute will be omitted.
-  * @param children Nodes to insert as children.
-  *                 Strings will be converted to TextNodes and arrays will be flattened.
-  * @returns A new Element instance.
-  */
+   * @param namespaceURI The namespaceURI to associate with the element.
+   * @param qualifiedName The local tagName of the element.
+   * @param [attr] A record of attributes to assign to the new element.
+   *               If the value is null or undefined, the attribute will be omitted.
+   * @param children Nodes to insert as children.
+   *                 Strings will be converted to TextNodes and arrays will be flattened.
+   * @returns A new Element instance.
+   * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
+   */
   createElementNS = (
     namespaceURI: string,
     qualifiedName: string,
-    attr: XMLAttr | null | undefined,
+    attr?: XMLAttr | null,
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
     const ns = this.namespaces.get(namespaceURI);
