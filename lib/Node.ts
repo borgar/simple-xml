@@ -53,25 +53,34 @@ export class Node {
    *
    * @param newNode The node to be inserted.
    * @param referenceNode The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes.
-   * @returns The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+   * @returns The node or DocumentFragment that was passed in.
+   * @throws {HierarchyError} If newNode is this node or one of its ancestors.
+   * @throws {NotFoundError} If referenceNode is not a child of this node.
    */
   insertBefore<T extends Node | DocumentFragment> (newNode: T, referenceNode: Node | null): T {
-    if (referenceNode) {
-      const index = this.childNodes.indexOf(referenceNode);
-      if (index > -1) {
-        const insertNodes = newNode instanceof Node ? [ newNode ] : newNode.childNodes;
-        checkHierarchy(this, insertNodes);
-        // update parentage for all the new nodes
-        for (const node of insertNodes) {
-          node.parentNode?.removeChild(node);
-          node.parentNode = this;
-        }
-        // insert the new nodes
-        this.childNodes.splice(index, 0, ...insertNodes);
-      }
-      return newNode;
+    if (!referenceNode) {
+      return this.appendChild(newNode);
     }
-    return this.appendChild(newNode);
+    const insertNodes = newNode instanceof Node ? [ newNode ] : [ ...newNode.childNodes ];
+    checkHierarchy(this, insertNodes);
+    if (referenceNode.parentNode !== this) {
+      throw new NotFoundError('The reference node is not a child of this node.');
+    }
+    // as in the DOM, a node that is its own reference goes before its next sibling
+    if (referenceNode === newNode) {
+      const next = this.childNodes[this.childNodes.indexOf(referenceNode) + 1];
+      if (!next) {
+        return newNode;
+      }
+      referenceNode = next;
+    }
+    // detach the new nodes before finding the index, as they may be children here
+    for (const node of insertNodes) {
+      node.parentNode?.removeChild(node);
+      node.parentNode = this;
+    }
+    this.childNodes.splice(this.childNodes.indexOf(referenceNode), 0, ...insertNodes);
+    return newNode;
   }
 
   /**

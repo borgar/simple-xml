@@ -4,7 +4,7 @@ import { Element } from './Element.ts';
 import { TextNode } from './TextNode.ts';
 import { CDataNode } from './CDataNode.ts';
 import { DocumentFragment } from './DocumentFragment.ts';
-import { HierarchyError } from './errors.ts';
+import { HierarchyError, NotFoundError } from './errors.ts';
 
 describe('Node', () => {
   describe('constructor / default properties', () => {
@@ -148,6 +148,72 @@ describe('Node', () => {
       newParent.insertBefore(child, ref);
       expect(oldParent.childNodes).not.toContain(child);
       expect(child.parentNode).toBe(newParent);
+    });
+
+    describe('moving within the same parent', () => {
+      function abcd () {
+        const parent = new Element('p');
+        const nodes = [ 'a', 'b', 'c', 'd' ].map(n => parent.appendChild(new Element(n)));
+        const names = () => parent.childNodes.map(n => (n as Element).tagName).join('');
+        return { parent, nodes, names };
+      }
+
+      it('moves a node forward', () => {
+        const { parent, nodes: [ a, , c ], names } = abcd();
+        parent.insertBefore(a, c);
+        expect(names()).toBe('bacd');
+      });
+
+      it('moves a node backward', () => {
+        const { parent, nodes: [ a, , c ], names } = abcd();
+        parent.insertBefore(c, a);
+        expect(names()).toBe('cabd');
+      });
+
+      it('keeps a node in place when inserted before its next sibling', () => {
+        const { parent, nodes: [ a, b ], names } = abcd();
+        parent.insertBefore(a, b);
+        expect(names()).toBe('abcd');
+      });
+
+      it('keeps a node in place when it is its own reference', () => {
+        const { parent, nodes: [ , b, , d ], names } = abcd();
+        parent.insertBefore(b, b);
+        expect(names()).toBe('abcd');
+        parent.insertBefore(d, d);
+        expect(names()).toBe('abcd');
+        expect(b.parentNode).toBe(parent);
+      });
+    });
+
+    describe('a reference node that is not a child', () => {
+      it('throws NotFoundError', () => {
+        const parent = new Element('p');
+        parent.appendChild(new Element('a'));
+        expect(() => parent.insertBefore(new Element('x'), new Element('z'))).toThrow(NotFoundError);
+        expect(() => new Element('p').insertBefore(new Element('x'), new Element('z'))).toThrow(NotFoundError);
+      });
+
+      it('leaves the tree and the new node unchanged', () => {
+        const parent = new Element('p');
+        const a = parent.appendChild(new Element('a'));
+        const other = new Element('o');
+        const x = other.appendChild(new Element('x'));
+        const frag = new DocumentFragment();
+        const y = frag.appendChild(new Element('y'));
+        expect(() => parent.insertBefore(x, new Element('z'))).toThrow(NotFoundError);
+        expect(() => parent.insertBefore(frag, new Element('z'))).toThrow(NotFoundError);
+        expect(parent.childNodes).toEqual([ a ]);
+        expect(x.parentNode).toBe(other);
+        expect(other.childNodes).toEqual([ x ]);
+        expect(frag.childNodes).toEqual([ y ]);
+      });
+
+      it('reports a hierarchy error first', () => {
+        const parent = new Element('p');
+        const child = parent.appendChild(new Element('c'));
+        expect(() => child.insertBefore(parent, new Element('z'))).toThrow(HierarchyError);
+      });
     });
   });
 

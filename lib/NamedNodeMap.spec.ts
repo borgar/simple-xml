@@ -1,7 +1,7 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
 import { processError } from '@vitest/utils/error';
-import { Attr, Element, NotFoundError } from '../lib/index.ts';
-import type { NamedNodeMap } from '../lib/index.ts';
+import { Attr, Element, NotFoundError } from './index.ts';
+import type { NamedNodeMap } from './index.ts';
 
 describe('NamedNodeMap', () => {
   describe('construction and identity', () => {
