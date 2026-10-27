@@ -5,6 +5,7 @@
 
 ## Classes
 
+- [Attr](#classesattrmd)
 - [CDataNode](#classescdatanodemd)
 - [Document](#classesdocumentmd)
 - [DocumentFragment](#classesdocumentfragmentmd)
@@ -22,6 +23,7 @@
 - [CreateChildArgument](#type-aliasescreatechildargumentmd)
 - [JsonMLAttr](#type-aliasesjsonmlattrmd)
 - [JsonMLElement](#type-aliasesjsonmlelementmd)
+- [NamedNodeMap](#type-aliasesnamednodemapmd)
 - [XMLAttr](#type-aliasesxmlattrmd)
 
 ## Variables
@@ -47,6 +49,262 @@
 - [parseXML](#functionsparsexmlmd)
 - [prettyPrint](#functionsprettyprintmd)
 - [simplePrint](#functionssimpleprintmd)
+
+
+<a name="classesattrmd"></a>
+
+# Attr
+
+A class describing an attribute.
+
+## Extends
+
+- [`Node`](#classesnodemd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new Attr(name: string, value: any): Attr;
+```
+
+Constructs a new Attr instance.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | The name of the attribute. |
+| `value` | `any` | The data of the attribute. |
+
+#### Returns
+
+`Attr`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Type | Default value | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="localname"></a> `localName` | `string` | `undefined` | The name of the tag for the given attribute, excluding any namespace prefix. | - |
+| <a id="name"></a> `name` | `string` | `undefined` | The qualified name of the attribute, including any namespace prefix. | - |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Document`](#classesdocumentmd).[`parentNode`](#parentnode) |
+| <a id="prefix"></a> `prefix` | `string` \| `null` | `undefined` | The namespace prefix of the attribute, or null if no prefix is specified. | - |
+| <a id="value"></a> `value` | `string` | `undefined` | The attribute's data value. | - |
+
+## Accessors
+
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
+
+***
+
+### fullName
+
+#### Get Signature
+
+```ts
+get fullName(): string;
+```
+
+The full name of the given attribute, including a namespace prefix.
+
+##### Returns
+
+`string`
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
+
+***
+
+### preserveSpace
+
+#### Get Signature
+
+```ts
+get preserveSpace(): boolean;
+```
+
+True if xml:space has been set to true for this node or any of its ancestors.
+
+##### Returns
+
+`boolean`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
+
+***
+
+### textContent
+
+#### Get Signature
+
+```ts
+get textContent(): string;
+```
+
+The text content of this node (and its children).
+
+##### Returns
+
+`string`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`textContent`](#textcontent)
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild<T>(node: T): T;
+```
+
+Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `node` | `T` | The new child node |
+
+#### Returns
+
+`T`
+
+The same node that was passed in.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### insertBefore()
+
+```ts
+insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
+
+#### Returns
+
+[`Node`](#classesnodemd) \| `undefined`
+
+The removed child node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`removeChild`](#removechild)
+
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
+
+Returns a string representation of the node.
+
+#### Returns
+
+`string`
+
+A formatted XML source.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`toString`](#tostring)
 
 
 <a name="classescdatanodemd"></a>
@@ -856,7 +1114,7 @@ Constructs a new Element instance.
 
 | Property | Type | Default value | Description | Overrides | Inherited from |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="attributes"></a> `attributes` | `NamedNodeMap` | `undefined` | A list of attributes assigned to this element. | - | - |
+| <a id="attributes"></a> `attributes` | [`NamedNodeMap`](#type-aliasesnamednodemapmd) | `undefined` | A list of attributes assigned to this element. | - | - |
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | - | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
 | <a id="closed"></a> `closed` | `boolean` | `undefined` | A state representing if the element was "self-closed" when read. | - | - |
 | <a id="localname"></a> `localName` | `string` | `undefined` | The name of the tag for the given element, excluding any namespace prefix. | - | - |
@@ -1332,13 +1590,13 @@ The elements by tag name.
 removeAttribute(name: string): void;
 ```
 
-Remove an attribute off the element.
+Remove an attribute off the element. Does nothing if the attribute is not present.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `name` | `string` | The attribute name to remove. |
+| `name` | `string` | The qualified name of the attribute to remove. |
 
 #### Returns
 
@@ -1735,6 +1993,7 @@ A class describing a Node.
 ## Extended by
 
 - [`Element`](#classeselementmd)
+- [`Attr`](#classesattrmd)
 - [`Document`](#classesdocumentmd)
 - [`TextNode`](#classestextnodemd)
 - [`CDataNode`](#classescdatanodemd)
@@ -2780,6 +3039,15 @@ type JsonMLElement =
   | [string, ...JsonMLElement[]]
   | [string]
   | string;
+```
+
+
+<a name="type-aliasesnamednodemapmd"></a>
+
+# NamedNodeMap
+
+```ts
+type NamedNodeMap = NamedNodeMapImpl & Readonly<Record<string, Attr | null>>;
 ```
 
 

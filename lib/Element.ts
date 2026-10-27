@@ -147,12 +147,14 @@ export class Element extends Node {
   }
 
   /**
-   * Remove an attribute off the element.
+   * Remove an attribute off the element. Does nothing if the attribute is not present.
    *
-   * @param name The attribute name to remove.
+   * @param name The qualified name of the attribute to remove.
    */
   removeAttribute (name: string) {
-    this.attributes.removeNamedItem(name);
+    if (this.attributes.getNamedItem(name)) {
+      this.attributes.removeNamedItem(name);
+    }
   }
 
   get className (): string {

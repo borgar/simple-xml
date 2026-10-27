@@ -3,7 +3,7 @@ import { NotFoundError } from './errors.js';
 
 /**
  * Runtime class for {@link NamedNodeMap}. Kept un-exported so that the public
- * `NamedNodeMap` type can be widened with an `Attr` index signature without
+ * `NamedNodeMap` type can be widened with an `Attr | null` index signature without
  * the index signature having to be compatible with the class's typed members
  * (`length`, `getNamedItem(): Attr | null`, etc.).
  */
@@ -14,7 +14,7 @@ class NamedNodeMapImpl {
     this.#attr = [];
   }
 
-  item (index: number) {
+  item (index: number): Attr | null {
     return this.#attr[index] ?? null;
   }
 
@@ -37,13 +37,13 @@ class NamedNodeMapImpl {
     return null;
   }
 
-  removeNamedItem (attrName: string) {
-    const existing = this.#attr.findIndex(d => d.nodeName === attrName);
+  removeNamedItem (qualifiedName: string) {
+    const existing = this.#attr.findIndex(d => d.fullName === qualifiedName);
     if (existing > -1) {
       const old = this.#attr.splice(existing, 1);
       return old[0];
     }
-    throw new NotFoundError(`No attribute with name '${attrName}' was found.`);
+    throw new NotFoundError(`No attribute with name '${qualifiedName}' was found.`);
   }
 
   get length () {
@@ -55,38 +55,57 @@ class NamedNodeMapImpl {
   }
 }
 
-const nameNodeMapProxy = {
-  get (target: NamedNodeMap, prop: string) {
+const isIndex = (prop: string) => /^(0|[1-9]\d*)$/.test(prop);
+
+// Resolves a property key to the Attr it exposes: an index, or a qualified name
+// that isn't shadowed by a member of the class. Returns undefined otherwise.
+function ownAttr (target: NamedNodeMapImpl, prop: string | symbol): Attr | undefined {
+  if (typeof prop !== 'string' || prop in NamedNodeMapImpl.prototype) {
+    return undefined;
+  }
+  const attr = isIndex(prop) ? target.item(Number(prop)) : target.getNamedItem(prop);
+  return attr ?? undefined;
+}
+
+// Mirrors the DOM: indices are enumerable own properties, and qualified names
+// are own properties that aren't enumerable.
+const nameNodeMapProxy: ProxyHandler<NamedNodeMapImpl> = {
+  get (target, prop) {
     if (prop in NamedNodeMapImpl.prototype) {
-      const value = Reflect.get(target, prop, target);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      return typeof value === 'function' ? (value as any).bind(target) : value;
+      const value: unknown = Reflect.get(target, prop, target);
+      return typeof value === 'function' ? value.bind(target) as unknown : value;
     }
-    const attr = target.getNamedItem(prop);
-    if (attr) {
-      return attr;
-    }
-    return null;
+    return ownAttr(target, prop) ?? null;
   },
 
-  has (target: NamedNodeMap, key: string) {
-    if (key in target) {
-      return true;
+  has (target, prop) {
+    return prop in target || ownAttr(target, prop) != null;
+  },
+
+  ownKeys (target) {
+    const keys: (string | symbol)[] = [];
+    const names: string[] = [];
+    let i = 0;
+    for (const attr of target) {
+      keys.push(String(i++));
+      if (!(attr.fullName in NamedNodeMapImpl.prototype)) {
+        names.push(attr.fullName);
+      }
     }
-    // integers
-    const num = Number(key);
-    if (Number.isFinite(num) && !(num % 1)) {
-      return num < target.length;
+    return keys.concat(names, Reflect.ownKeys(target));
+  },
+
+  getOwnPropertyDescriptor (target, prop) {
+    const attr = ownAttr(target, prop);
+    if (attr) {
+      return { value: attr, writable: false, enumerable: isIndex(prop as string), configurable: true };
     }
-    // propnames
-    if (target.getNamedItem(key)) {
-      return true;
-    }
-    return false;
+    return Reflect.getOwnPropertyDescriptor(target, prop);
   }
 };
 
-export type NamedNodeMap = NamedNodeMapImpl & Readonly<Record<string, Attr>>;
+// Index and name lookups return null when the attribute is missing.
+export type NamedNodeMap = NamedNodeMapImpl & Readonly<Record<string, Attr | null>>;
 
 export function createNamedNodeMap (): NamedNodeMap {
   return new Proxy(new NamedNodeMapImpl(), nameNodeMapProxy) as NamedNodeMap;

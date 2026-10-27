@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Element } from '../lib/index.ts';
-import { Attr } from '../lib/Attr.ts';
+import { describe, it, expect, expectTypeOf } from 'vitest';
+import { Attr, Element, NotFoundError } from '../lib/index.ts';
+import type { NamedNodeMap } from '../lib/index.ts';
 
 describe('NamedNodeMap', () => {
   describe('construction and identity', () => {
@@ -26,6 +26,13 @@ describe('NamedNodeMap', () => {
       a.setAttribute('x', '1');
       expect(b.attributes.length).toBe(0);
       expect(a.attributes).not.toBe(b.attributes);
+    });
+
+    it('exposes Attr instances, and the types are exported from the package', () => {
+      const el = new Element('foo', { a: '1' });
+      const map: NamedNodeMap = el.attributes;
+      const attr: Attr | null = map.item(0);
+      expect(attr).toBeInstanceOf(Attr);
     });
   });
 
@@ -178,6 +185,50 @@ describe('NamedNodeMap', () => {
       expect(el.attributes.length).toBe(0);
       expect(el.attributes.getNamedItem('a')).toBeNull();
     });
+
+    it('matches prefixed attributes by qualified name', () => {
+      const el = new Element('foo', { 'a:c': '1', 'xml:space': 'preserve', 'xmlns:a': 'urn:a' });
+      expect(el.attributes.removeNamedItem('a:c').fullName).toBe('a:c');
+      expect(el.attributes.removeNamedItem('xml:space').fullName).toBe('xml:space');
+      expect(el.attributes.removeNamedItem('xmlns:a').fullName).toBe('xmlns:a');
+      expect(el.attributes.length).toBe(0);
+    });
+
+    it('does not match a prefixed attribute by its local name', () => {
+      const el = new Element('foo', { 'p:q': '1', 'r:q': '2' });
+      expect(() => el.attributes.removeNamedItem('q')).toThrow(NotFoundError);
+      expect(el.attributes.length).toBe(2);
+    });
+
+    it('throws NotFoundError when the attribute is missing', () => {
+      const el = new Element('foo');
+      expect(() => el.attributes.removeNamedItem('missing')).toThrow(NotFoundError);
+    });
+  });
+
+  describe('Element.removeAttribute', () => {
+    it('removes prefixed attributes by qualified name', () => {
+      const el = new Element('foo', { 'a:c': '1', 'xml:space': 'preserve', 'xmlns:a': 'urn:a', 'b': '2' });
+      el.removeAttribute('a:c');
+      el.removeAttribute('xml:space');
+      el.removeAttribute('xmlns:a');
+      expect([ ...el.attributes ].map(d => d.fullName)).toEqual([ 'b' ]);
+    });
+
+    it('removes only the attribute whose qualified name matches', () => {
+      const el = new Element('foo', { 'p:q': '1', 'r:q': '2', 'q': '3' });
+      el.removeAttribute('q');
+      expect([ ...el.attributes ].map(d => d.fullName)).toEqual([ 'p:q', 'r:q' ]);
+      el.removeAttribute('r:q');
+      expect([ ...el.attributes ].map(d => d.fullName)).toEqual([ 'p:q' ]);
+    });
+
+    it('does nothing when the attribute is missing', () => {
+      const el = new Element('foo', { 'p:q': '1' });
+      expect(() => el.removeAttribute('missing')).not.toThrow();
+      expect(() => el.removeAttribute('q')).not.toThrow();
+      expect(el.attributes.length).toBe(1);
+    });
   });
 
   describe('item() and indexed access', () => {
@@ -203,9 +254,9 @@ describe('NamedNodeMap', () => {
       const el = new Element('foo', { a: '1', b: '2' });
       el.setAttribute('c', '3');
       el.setAttribute('d', '4');
-      const names: string[] = [];
+      const names: (string | undefined)[] = [];
       for (let i = 0; i < el.attributes.length; i++) {
-        names.push(el.attributes.item(i).name);
+        names.push(el.attributes.item(i)?.name);
       }
       expect(names).toEqual([ 'a', 'b', 'c', 'd' ]);
     });
@@ -213,9 +264,9 @@ describe('NamedNodeMap', () => {
     it('keeps an attribute in place when its value is overwritten', () => {
       const el = new Element('foo', { a: '1', b: '2', c: '3' });
       el.setAttribute('b', '20');
-      const names: string[] = [];
+      const names: (string | undefined)[] = [];
       for (let i = 0; i < el.attributes.length; i++) {
-        names.push(el.attributes.item(i).name);
+        names.push(el.attributes.item(i)?.name);
       }
       expect(names).toEqual([ 'a', 'b', 'c' ]);
       expect(el.attributes.getNamedItem('b')?.value).toBe('20');
@@ -228,6 +279,72 @@ describe('NamedNodeMap', () => {
       expect(el.attributes.item(0)?.name).toBe('a');
       expect(el.attributes.item(1)?.name).toBe('c');
       expect(el.attributes.item(2)).toBeNull();
+    });
+
+    it('attributes[i] returns the same Attr as item(i)', () => {
+      const el = new Element('foo', { a: '1', b: '2' });
+      expect(el.attributes[0]).toBe(el.attributes.item(0));
+      expect(el.attributes[1]).toBe(el.attributes.item(1));
+      expect(el.attributes['1']).toBe(el.attributes.item(1));
+    });
+
+    it('in agrees with indexed access', () => {
+      const el = new Element('foo', { a: '1' });
+      expect(0 in el.attributes).toBe(true);
+      expect(1 in el.attributes).toBe(false);
+      expect(-1 in el.attributes).toBe(false);
+      expect('0.5' in el.attributes).toBe(false);
+      expect('a' in el.attributes).toBe(true);
+      expect('b' in el.attributes).toBe(false);
+    });
+  });
+
+  describe('own properties', () => {
+    it('Object.keys lists the indices', () => {
+      const el = new Element('foo', { 'a': '1', 'xmlns:a': 'urn:a' });
+      expect(Object.keys(el.attributes)).toEqual([ '0', '1' ]);
+    });
+
+    it('Object.getOwnPropertyNames lists indices and qualified names', () => {
+      const el = new Element('foo', { 'a': '1', 'xmlns:a': 'urn:a' });
+      expect(Object.getOwnPropertyNames(el.attributes)).toEqual([ '0', '1', 'a', 'xmlns:a' ]);
+    });
+
+    it('names are own properties but not enumerable', () => {
+      const el = new Element('foo', { a: '1' });
+      expect(Object.hasOwn(el.attributes, 'a')).toBe(true);
+      expect(Object.getOwnPropertyDescriptor(el.attributes, 'a')).toMatchObject({
+        value: el.attributes.getNamedItem('a'),
+        enumerable: false
+      });
+      expect(Object.getOwnPropertyDescriptor(el.attributes, 0)).toMatchObject({
+        value: el.attributes.item(0),
+        enumerable: true
+      });
+      expect(Object.getOwnPropertyDescriptor(el.attributes, 1)).toBeUndefined();
+    });
+
+    it('object spread copies the indexed attributes', () => {
+      const el = new Element('foo', { a: '1', b: '2' });
+      const copy = { ...el.attributes };
+      expect(Object.keys(copy)).toEqual([ '0', '1' ]);
+      expect(copy[0]).toBe(el.attributes.item(0));
+      expect(copy[1]).toBe(el.attributes.item(1));
+    });
+
+    it('JSON.stringify includes the indexed attributes', () => {
+      const el = new Element('foo', { a: '1', b: '2' });
+      const json = JSON.parse(JSON.stringify(el.attributes)) as Record<string, { value: string }>;
+      expect(Object.keys(json)).toEqual([ '0', '1' ]);
+      expect(json[0].value).toBe('1');
+      expect(json[1].value).toBe('2');
+    });
+
+    it('reflects later changes', () => {
+      const el = new Element('foo', { a: '1' });
+      el.setAttribute('b', '2');
+      el.removeAttribute('a');
+      expect(Object.getOwnPropertyNames(el.attributes)).toEqual([ '0', 'b' ]);
     });
   });
 
@@ -253,7 +370,29 @@ describe('NamedNodeMap', () => {
       const el = new Element('foo', { a: '1', b: '2' });
       const arr = Array.from(el.attributes);
       expect(arr).toHaveLength(2);
-      expect(arr.map(a => a.name)).toEqual([ 'a', 'b' ]);
+      expect(arr.map(a => a?.name)).toEqual([ 'a', 'b' ]);
+    });
+  });
+
+  // These are checked by `tsc` when running `npm run typecheck`.
+  describe('types', () => {
+    it('types named and indexed access as possibly null', () => {
+      const el = new Element('foo', { a: '1' });
+      expectTypeOf(el.attributes.a).toEqualTypeOf<Attr | null>();
+      expectTypeOf(el.attributes.Missing).toEqualTypeOf<Attr | null>();
+      expectTypeOf(el.attributes[0]).toEqualTypeOf<Attr | null>();
+      expect(el.attributes.Missing).toBeNull();
+      // @ts-expect-error -- a missing attribute is null, so .value must not compile unchecked
+      expect(() => el.attributes.Missing.value).toThrow(TypeError);
+      expect(el.attributes.Missing?.value).toBeUndefined();
+    });
+
+    it('keeps the types of the map members', () => {
+      const map: NamedNodeMap = new Element('foo', { a: '1' }).attributes;
+      expectTypeOf(map.length).toEqualTypeOf<number>();
+      expectTypeOf(map.item(5)).toEqualTypeOf<Attr | null>();
+      expectTypeOf(map.getNamedItem('b')).toEqualTypeOf<Attr | null>();
+      expectTypeOf(map.removeNamedItem('a')).toEqualTypeOf<Attr>();
     });
   });
 
@@ -263,6 +402,14 @@ describe('NamedNodeMap', () => {
       const attr = el.attributes.getNamedItem('color');
       expect(attr?.name).toBe('color');
       expect(attr?.value).toBe('red');
+    });
+
+    it('use the qualified name for name and nodeName', () => {
+      const el = new Element('foo', { 'a': '1', 'xmlns:a': 'urn:a', 'xml:space': 'preserve' });
+      const [ plain, xmlns, space ] = [ ...el.attributes ];
+      expect([ plain.name, plain.nodeName, plain.prefix, plain.localName ]).toEqual([ 'a', 'a', null, 'a' ]);
+      expect([ xmlns.name, xmlns.nodeName, xmlns.prefix, xmlns.localName ]).toEqual([ 'xmlns:a', 'xmlns:a', 'xmlns', 'a' ]);
+      expect([ space.name, space.nodeName, space.prefix, space.localName ]).toEqual([ 'xml:space', 'xml:space', 'xml', 'space' ]);
     });
 
     it('reflect later updates to the same attribute name', () => {

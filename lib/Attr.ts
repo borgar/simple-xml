@@ -8,14 +8,14 @@ import { splitTagName } from './splitTagName.ts';
  * @augments Node
  */
 export class Attr extends Node {
-  /** The namespace prefix of the element, or null' if no prefix is specified. */
+  /** The namespace prefix of the attribute, or null if no prefix is specified. */
   prefix: string | null;
-  /** The name of the tag for the given element, excluding any namespace prefix. */
+  /** The name of the tag for the given attribute, excluding any namespace prefix. */
   localName: string;
 
-  /** The node's name. */
+  /** The qualified name of the attribute, including any namespace prefix. */
   name: string;
-  /** The node's data value. */
+  /** The attribute's data value. */
   value: string;
 
   /**
@@ -30,15 +30,15 @@ export class Attr extends Node {
     const [ prefix, localName ] = splitTagName(name);
     this.prefix = prefix;
     this.localName = localName;
-    this.name = localName;
-    this.nodeName = localName;
+    this.name = this.fullName;
+    this.nodeName = this.fullName;
 
     this.value = String(value);
 
     this.nodeType = ATTRIBUTE_NODE;
   }
 
-  /** The full name of the tag for the given element, including a namespace prefix. */
+  /** The full name of the given attribute, including a namespace prefix. */
   get fullName () {
     return this.prefix
       ? this.prefix + ':' + this.localName

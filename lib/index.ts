@@ -1,6 +1,7 @@
 export { parseXML } from './parser.js';
 export { Node } from './Node.js';
 export { Element } from './Element.js';
+export { Attr } from './Attr.ts';
 export { Document } from './Document.js';
 export { TextNode } from './TextNode.js';
 export { CDataNode } from './CDataNode.js';
@@ -18,6 +19,7 @@ export {
 } from './errors.ts';
 export type { CreateChildArgument } from './CreateChildArgument.js';
 export type { XMLAttr } from './XMLAttr.js';
+export type { NamedNodeMap } from './NamedNodeMap.ts';
 export type { JsonMLElement, JsonMLAttr } from './JsonML.js';
 export {
   ELEMENT_NODE,
