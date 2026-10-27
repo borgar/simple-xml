@@ -8,6 +8,7 @@ import { unescape } from './unescape.js';
 import { removeCR } from './removeCR.js';
 import { parseAttr } from './parseAttr.js';
 import { NamespaceError, ParserError } from './errors.js';
+import { XML_NS, XMLNS_NS } from './constants.js';
 
 const DEFAULTOPTIONS = {
   emptyDoc: false,
@@ -295,17 +296,59 @@ export function parseXML (
     while (m);
   }
 
-  function checkNS (elm: Element) {
-    for (const attr of elm.attributes) {
-      if (attr.localName === 'xmlns') {
-        doc.attachNS(attr.value, '');
+  // Namespace scopes for the ns option: prefix -> URI ('' is the default
+  // namespace). An element with declarations gets a new scope that inherits
+  // from its parent's through the prototype chain.
+  type NSScope = Record<string, string>;
+  let nsScope: NSScope = Object.assign(Object.create(null) as NSScope, { xml: XML_NS, xmlns: XMLNS_NS });
+  const nsStack: NSScope[] = [];
+
+  // Reads the parsed attribute record rather than elm.attributes, which is slower.
+  function checkNS (elm: Element, attr: Record<string, string>): NSScope {
+    let scope = nsScope;
+    let prefixedAttr = false;
+    for (const name in attr) {
+      if (name === 'xmlns' || name.startsWith('xmlns:')) {
+        const prefix = name === 'xmlns' ? '' : name.slice(6);
+        const uri = attr[name];
+        if (
+          prefix === 'xmlns' ||
+          uri === XMLNS_NS ||
+          (prefix === 'xml') !== (uri === XML_NS) ||
+          (prefix && !uri)
+        ) {
+          throw new NamespaceError(`Invalid namespace declaration ${name}="${uri}"`);
+        }
+        if (scope === nsScope) {
+          scope = Object.create(nsScope) as NSScope;
+        }
+        scope[prefix] = uri;
       }
-      if (attr.prefix === 'xmlns') {
-        doc.attachNS(attr.value, attr.localName);
+      else if (name.includes(':')) {
+        prefixedAttr = true;
       }
     }
-    if (elm.prefix && !doc.namespaces.getByPrefix(elm.prefix)) {
+    if (elm.prefix === 'xmlns' || (elm.prefix && !(elm.prefix in scope))) {
       throw new NamespaceError('Unknown namespace prefix ' + elm.prefix);
+    }
+    if (prefixedAttr) {
+      for (const name in attr) {
+        const colon = name.indexOf(':');
+        const prefix = colon > 0 ? name.slice(0, colon) : '';
+        if (prefix && prefix !== 'xmlns' && !(prefix in scope)) {
+          throw new NamespaceError('Unknown namespace prefix ' + prefix);
+        }
+      }
+    }
+    return scope;
+  }
+
+  // Check an element's namespaces, and enter its scope if it has content.
+  function enterNS (elm: Element, attr: Record<string, string>) {
+    const scope = checkNS(elm, attr);
+    if (!elm.closed) {
+      nsStack.push(nsScope);
+      nsScope = scope;
     }
   }
 
@@ -334,8 +377,9 @@ export function parseXML (
 
   // root tag
   maybeMatchFn(fnTag, (_, t, a, c) => {
-    root = new Element(t, parseAttr(a, options.laxAttr), !!c);
-    if (options.ns) checkNS(root);
+    const attr = parseAttr(a, options.laxAttr);
+    root = new Element(t, attr, !!c);
+    if (options.ns) enterNS(root, attr);
     return true;
   });
 
@@ -364,6 +408,9 @@ export function parseXML (
           // the thing being closed must be the parent
           if (t.trim() === current?.fullName) {
             current = current.parentNode;
+            if (options.ns) {
+              nsScope = nsStack.pop() ?? nsScope;
+            }
             return true;
           }
           const msg = `Expected </${current?.fullName}> got </${t}> in line ${posToLine(pos, xml)}`;
@@ -373,7 +420,7 @@ export function parseXML (
         maybeMatchFn(fnTag, (_, t, a, c) => {
           const attr = parseAttr(a, options.laxAttr);
           const elm = new Element(t, attr, !!c);
-          if (options.ns) checkNS(elm);
+          if (options.ns) enterNS(elm, attr);
           current?.appendChild(elm);
           if (!elm.closed) {
             current = elm;

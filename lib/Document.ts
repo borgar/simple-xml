@@ -2,7 +2,8 @@ import { JsonML, type JsonMLElement } from './JsonML.js';
 import { Node } from './Node.js';
 import { Element } from './Element.js';
 import { appendChild } from './appendChild.js';
-import { DOCUMENT_NODE, XML_DECLARATION } from './constants.js';
+import { DOCUMENT_NODE, XML_DECLARATION, XML_NS, XMLNS_NS } from './constants.js';
+import { splitTagName } from './splitTagName.ts';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
 import { isElement } from './isElement.ts';
@@ -20,8 +21,8 @@ import { HierarchyError, NamespaceError } from './errors.js';
  * @augments Node
  */
 export class Document extends Node {
-  /** @ignore */
-  namespaces = new NSMap();
+  // namespaces attached with attachNS, which are kept declared on the root
+  #namespaces = new NSMap();
 
   /**
    * Constructs a new Document instance.
@@ -40,18 +41,37 @@ export class Document extends Node {
    * @param [prefix] Prefix to use on elements belonging to the namespace.
    */
   attachNS (namespaceURI: string, prefix = ''): (name: string, attr?: XMLAttr | null, ...children: (CreateChildArgument | CreateChildArgument[])[]) => Element {
-    this.namespaces.add(namespaceURI, prefix);
+    this.#namespaces.add(namespaceURI, prefix);
     this._updateNS();
 
     // Return a new create function bound to the namespace
     return this.createElementNS.bind(this, namespaceURI);
   }
 
+  // The prefix to use for a namespace ('' for the default namespace)
+  #prefixFor (namespaceURI: string): string {
+    const attached = this.#namespaces.get(namespaceURI);
+    if (attached != null) {
+      return attached;
+    }
+    const root = this.root;
+    if (root && namespaceURI) {
+      if (root.isDefaultNamespace(namespaceURI)) {
+        return '';
+      }
+      const prefix = root.lookupPrefix(namespaceURI);
+      if (prefix) {
+        return prefix;
+      }
+    }
+    throw new NamespaceError('Unknown namespace ' + namespaceURI);
+  }
+
   /** @ignore */
   private _updateNS () {
     // ensure that namespaces exist on the root node
     if (this.root) {
-      for (const [ namespaceURI, prefix ] of this.namespaces.list()) {
+      for (const [ namespaceURI, prefix ] of this.#namespaces.list()) {
         const key = 'xmlns' + (prefix ? ':' + prefix : '');
         this.root.setAttribute(key, namespaceURI);
       }
@@ -123,13 +143,19 @@ export class Document extends Node {
   /**
    * Create a new element node associated with a given namespace.
    *
+   * If the name has a prefix, it is used as given, and the caller is
+   * responsible for declaring it. Otherwise, the prefix comes from a namespace
+   * attached with `attachNS`, or from the declarations on the root element.
+   *
    * @param namespaceURI The namespaceURI to associate with the element.
-   * @param qualifiedName The local tagName of the element.
+   * @param qualifiedName The tagName of the element, with or without a prefix.
    * @param [attr] A record of attributes to assign to the new element.
    *               If the value is null or undefined, the attribute will be omitted.
    * @param children Nodes to insert as children.
    *                 Strings will be converted to TextNodes and arrays will be flattened.
    * @returns A new Element instance.
+   * @throws {NamespaceError} If no prefix is known for the namespace, or the
+   *                          name breaks the rules for the xml and xmlns prefixes.
    * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
   createElementNS = (
@@ -138,11 +164,17 @@ export class Document extends Node {
     attr?: XMLAttr | null,
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
-    const ns = this.namespaces.get(namespaceURI);
-    if (ns == null) {
-      throw new NamespaceError('Unknown namespace ' + namespaceURI);
+    const [ prefix, localName ] = splitTagName(qualifiedName);
+    // the same rules as DOM's createElementNS
+    if (
+      (prefix && !namespaceURI) ||
+      (prefix === 'xml' && namespaceURI !== XML_NS) ||
+      ((prefix === 'xmlns' || qualifiedName === 'xmlns') !== (namespaceURI === XMLNS_NS))
+    ) {
+      throw new NamespaceError(`Invalid name ${qualifiedName} for namespace ${namespaceURI}`);
     }
-    const element = new Element(ns ? ns + ':' + qualifiedName : qualifiedName);
+    const ns = prefix ?? this.#prefixFor(namespaceURI);
+    const element = new Element(ns ? ns + ':' + localName : localName);
     element.setAttrValues(attr ?? null);
     for (const child of children) {
       element.append(child);

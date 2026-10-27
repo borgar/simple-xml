@@ -1,5 +1,5 @@
 import { Node } from './Node.js';
-import { ELEMENT_NODE } from './constants.js';
+import { ELEMENT_NODE, XML_NS, XMLNS_NS } from './constants.js';
 import { JsonML, type JsonMLElement } from './JsonML.js';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
@@ -12,6 +12,15 @@ import type { XMLAttr } from './XMLAttr.ts';
 import { createNamedNodeMap, type NamedNodeMap } from './NamedNodeMap.ts';
 import { Attr } from './Attr.ts';
 import { splitTagName } from './splitTagName.ts';
+
+// The element, then each of its ancestor elements.
+function* selfAndAncestors (el: Element): Generator<Element> {
+  let node: Node | null = el;
+  while (isElement(node)) {
+    yield node;
+    node = node.parentNode;
+  }
+}
 
 /**
  * A class describing an Element.
@@ -65,6 +74,82 @@ export class Element extends Node {
     return this.prefix
       ? this.prefix + ':' + this.localName
       : this.localName;
+  }
+
+  /**
+   * The namespace URI of the element, or null if it has none. It is resolved
+   * from the element's prefix and the `xmlns` declarations on the element and
+   * its ancestors, so it changes if the element is moved.
+   */
+  get namespaceURI (): string | null {
+    return this.lookupNamespaceURI(this.prefix);
+  }
+
+  /**
+   * Find the namespace URI that a prefix is bound to, using the `xmlns`
+   * declarations on the element and its ancestors.
+   *
+   * @param prefix The prefix to look up, or null for the default namespace.
+   * @returns The namespace URI, or null if the prefix is not bound.
+   */
+  lookupNamespaceURI (prefix: string | null): string | null {
+    if (prefix === 'xml') {
+      return XML_NS;
+    }
+    if (prefix === 'xmlns') {
+      return XMLNS_NS;
+    }
+    const declaration = prefix ? 'xmlns:' + prefix : 'xmlns';
+    for (const el of selfAndAncestors(this)) {
+      const value = el.getAttribute(declaration);
+      if (value != null) {
+        // xmlns="" removes the default namespace
+        return value || null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find a prefix that is bound to a namespace URI, using the `xmlns`
+   * declarations on the element and its ancestors. A prefix that a nearer
+   * element binds to a different URI is skipped.
+   *
+   * @param namespaceURI The namespace URI to look up.
+   * @returns The prefix, or null if no prefix is bound to the namespace.
+   */
+  lookupPrefix (namespaceURI: string | null): string | null {
+    if (!namespaceURI) {
+      return null;
+    }
+    if (namespaceURI === XML_NS) {
+      return 'xml';
+    }
+    if (namespaceURI === XMLNS_NS) {
+      return 'xmlns';
+    }
+    for (const el of selfAndAncestors(this)) {
+      for (const attr of el.attributes) {
+        if (
+          attr.prefix === 'xmlns' &&
+          attr.value === namespaceURI &&
+          this.lookupNamespaceURI(attr.localName) === namespaceURI
+        ) {
+          return attr.localName;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Test if a namespace URI is the default namespace of the element.
+   *
+   * @param namespaceURI The namespace URI to test, or null for no namespace.
+   * @returns True if unprefixed elements here belong to the namespace.
+   */
+  isDefaultNamespace (namespaceURI: string | null): boolean {
+    return this.lookupNamespaceURI(null) === (namespaceURI || null);
   }
 
   hasAttributes () {

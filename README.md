@@ -51,7 +51,7 @@ Allow normally forbidden "rootless" documents with `emptyDoc`:
 parseXML('', { emptyDoc: true });
 ```
 
-Validate `xmlns` declarations and element/attribute prefixes against them with `ns`. With this flag, an unknown prefix or a re-bound prefix throws a `NamespaceError`:
+Validate `xmlns` declarations and element/attribute prefixes against them with `ns`. Declarations apply to the element they're on and its descendants. With this flag, a prefix used outside the scope of its declaration, or a misused `xml` or `xmlns` prefix, throws a `NamespaceError`:
 
 ```js
 parseXML('<root xmlns:x="urn:example"><x:node /></root>', { ns: true });
@@ -82,6 +82,12 @@ As well as a parse method, the package exports the node classes (`Node`, `Elemen
 
 * `.fullName`
   The full tag name including the prefix (`foo:bar` in the case of `<foo:bar>`).
+
+* `.namespaceURI`
+  The namespace URI of the element, or `null` if it has none. It's resolved from the `xmlns` declarations on the element and its ancestors.
+
+* `.lookupNamespaceURI( prefix )`, `.lookupPrefix( namespaceURI )`, `.isDefaultNamespace( namespaceURI )`
+  Resolve prefixes and namespace URIs from the `xmlns` declarations on the element and its ancestors, as in the DOM.
 
 **Attributes**
 
