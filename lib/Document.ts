@@ -20,7 +20,6 @@ import { HierarchyError, NamespaceError } from './errors.js';
  * @augments Node
  */
 export class Document extends Node {
-  root: Element | null = null;
   /** @ignore */
   namespaces = new NSMap();
 
@@ -56,6 +55,32 @@ export class Document extends Node {
         const key = 'xmlns' + (prefix ? ':' + prefix : '');
         this.root.setAttribute(key, namespaceURI);
       }
+    }
+  }
+
+  /**
+   * The root element of the document, or null if it has none.
+   * Assigning an element replaces the current root and declares the
+   * document's namespaces on it. Assigning null removes the root.
+   */
+  get root (): Element | null {
+    // appendChild and insertBefore only ever allow a single Element child
+    return (this.childNodes[0] as Element | undefined) ?? null;
+  }
+
+  set root (element: Element | null) {
+    const current = this.root;
+    if (element === current) {
+      return;
+    }
+    if (element && !(element instanceof Element)) {
+      throw new HierarchyError('Document root node must be an Element');
+    }
+    if (current) {
+      this.removeChild(current);
+    }
+    if (element) {
+      this.appendChild(element);
     }
   }
 
@@ -181,9 +206,14 @@ export class Document extends Node {
       throw new HierarchyError('Document root node must be an Element');
     }
     appendChild(this, root);
-    this.root = root;
     this._updateNS();
     return node;
+  }
+
+  // overwrites super: a document has at most one child, so this is appendChild
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  insertBefore<T extends Node | DocumentFragment> (newNode: T, referenceNode: Node | null): T {
+    return this.appendChild(newNode);
   }
 
   /**
