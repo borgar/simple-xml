@@ -4,6 +4,7 @@ import { Element } from './Element.ts';
 import { TextNode } from './TextNode.ts';
 import { CDataNode } from './CDataNode.ts';
 import { DocumentFragment } from './DocumentFragment.ts';
+import { HierarchyError } from './errors.ts';
 
 describe('Node', () => {
   describe('constructor / default properties', () => {
@@ -314,6 +315,89 @@ describe('Node', () => {
       expect(str).toContain('<root>');
       expect(str).toContain('<child');
       expect(str).toContain('</root>');
+    });
+  });
+
+  describe('hierarchy checks', () => {
+    // a > b > c
+    function tree () {
+      const a = new Element('a');
+      const b = new Element('b');
+      const c = new Element('c');
+      a.appendChild(b);
+      b.appendChild(c);
+      return { a, b, c };
+    }
+    function expectUnchanged ({ a, b, c }: ReturnType<typeof tree>) {
+      expect(a.parentNode).toBeNull();
+      expect(a.childNodes).toEqual([ b ]);
+      expect(b.parentNode).toBe(a);
+      expect(b.childNodes).toEqual([ c ]);
+      expect(c.parentNode).toBe(b);
+      expect(c.childNodes).toEqual([]);
+    }
+
+    it('appendChild rejects the node itself', () => {
+      const t = tree();
+      expect(() => t.b.appendChild(t.b)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('appendChild rejects a parent or a more distant ancestor', () => {
+      const t = tree();
+      expect(() => t.b.appendChild(t.a)).toThrow(HierarchyError);
+      expect(() => t.c.appendChild(t.a)).toThrow(HierarchyError);
+      expect(() => t.c.appendChild(t.b)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('insertBefore rejects the node itself or an ancestor', () => {
+      const t = tree();
+      expect(() => t.b.insertBefore(t.b, t.c)).toThrow(HierarchyError);
+      expect(() => t.b.insertBefore(t.a, t.c)).toThrow(HierarchyError);
+      expect(() => t.c.insertBefore(t.a, null)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('append and prepend reject an ancestor', () => {
+      const t = tree();
+      expect(() => t.c.append(t.a)).toThrow(HierarchyError);
+      expect(() => t.c.prepend(t.a)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('rejects a fragment that holds an ancestor, without inserting any of it', () => {
+      const t = tree();
+      const x = new Element('x');
+      const frag = new DocumentFragment();
+      frag.appendChild(x);
+      frag.appendChild(t.a);
+      expect(() => t.c.appendChild(frag)).toThrow(HierarchyError);
+      expect(() => t.b.insertBefore(frag, t.c)).toThrow(HierarchyError);
+      expectUnchanged(t);
+      expect(x.parentNode).toBeNull();
+    });
+
+    it('rejects appending a fragment to itself', () => {
+      const frag = new DocumentFragment();
+      const x = new Element('x');
+      frag.appendChild(x);
+      expect(() => frag.appendChild(frag)).toThrow(HierarchyError);
+      expect(frag.childNodes).toEqual([ x ]);
+    });
+
+    it('still allows moving a node up, across, or out of a fragment', () => {
+      const t = tree();
+      t.a.appendChild(t.c);
+      expect(t.c.parentNode).toBe(t.a);
+      expect(t.a.childNodes).toEqual([ t.b, t.c ]);
+      t.b.insertBefore(t.c, null);
+      expect(t.c.parentNode).toBe(t.b);
+      const frag = new DocumentFragment();
+      const x = new Element('x');
+      frag.appendChild(x);
+      t.c.appendChild(frag);
+      expect(x.parentNode).toBe(t.c);
     });
   });
 });

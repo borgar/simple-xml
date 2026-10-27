@@ -1,4 +1,5 @@
 import { appendChild } from './appendChild.js';
+import { checkHierarchy } from './checkHierarchy.ts';
 import { DocumentFragment } from './DocumentFragment.ts';
 import { NotFoundError } from './errors.js';
 import { prettyPrint } from './prettyPrint.js';
@@ -59,6 +60,7 @@ export class Node {
       const index = this.childNodes.indexOf(referenceNode);
       if (index > -1) {
         const insertNodes = newNode instanceof Node ? [ newNode ] : newNode.childNodes;
+        checkHierarchy(this, insertNodes);
         // update parentage for all the new nodes
         for (const node of insertNodes) {
           node.parentNode?.removeChild(node);
