@@ -384,6 +384,48 @@ describe('Node', () => {
     });
   });
 
+  describe('Element.prepend', () => {
+    function withChildren (...names: string[]) {
+      const parent = new Element('p');
+      const nodes = names.map(n => parent.appendChild(new Element(n)));
+      const names_ = () => parent.childNodes.map(n => (n instanceof Element ? n.tagName : (n as TextNode).data)).join(',');
+      return { parent, nodes, names: names_ };
+    }
+
+    it('inserts nodes and strings in argument order', () => {
+      const { parent, names } = withChildren('z');
+      parent.prepend(new Element('a'), new Element('b'), 'c', [ new Element('d'), 'e' ], null);
+      expect(names()).toBe('a,b,c,d,e,z');
+    });
+
+    it('works on an element without children', () => {
+      const { parent, names } = withChildren();
+      parent.prepend(new Element('a'), 'b');
+      expect(names()).toBe('a,b');
+    });
+
+    it('keeps argument order when the first child is one of the arguments', () => {
+      const first = withChildren('y', 'z');
+      first.parent.prepend(new Element('a'), first.nodes[0]);
+      expect(first.names()).toBe('a,y,z');
+
+      const last = withChildren('y', 'z');
+      last.parent.prepend(last.nodes[0], new Element('a'));
+      expect(last.names()).toBe('y,a,z');
+
+      const moved = withChildren('x', 'y', 'z');
+      moved.parent.prepend(moved.nodes[2], moved.nodes[0]);
+      expect(moved.names()).toBe('z,x,y');
+    });
+
+    it('inserts nothing when one of the nodes is an ancestor', () => {
+      const { parent, nodes: [ z ], names } = withChildren('z');
+      expect(() => z.prepend(new Element('a'), parent)).toThrow(HierarchyError);
+      expect(z.childNodes).toEqual([]);
+      expect(names()).toBe('z');
+    });
+  });
+
   describe('hierarchy checks', () => {
     // a > b > c
     function tree () {

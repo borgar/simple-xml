@@ -5,6 +5,8 @@ import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
 import { isElement } from './isElement.ts';
 import { TextNode } from './TextNode.ts';
+import { DocumentFragment } from './DocumentFragment.ts';
+import { checkHierarchy } from './checkHierarchy.ts';
 import type { CreateChildArgument } from './CreateChildArgument.ts';
 import { prettyPrint } from './prettyPrint.ts';
 import { simplePrint } from './simplePrint.ts';
@@ -280,14 +282,21 @@ export class Element extends Node {
    * Strings are inserted as equivalent Text nodes.
    */
   prepend (...nodes: (CreateChildArgument | CreateChildArgument[])[]): void {
-    const flatNodes = nodes.flat();
-    for (const n of flatNodes) {
+    const insertNodes: (Node | DocumentFragment)[] = [];
+    for (const n of nodes.flat()) {
       if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
-        this.insertBefore(new TextNode(n), this.firstChild);
+        insertNodes.push(new TextNode(n));
       }
       else if (n) {
-        this.insertBefore(n, this.firstChild);
+        insertNodes.push(n);
       }
+    }
+    const moving = insertNodes.flatMap(n => (n instanceof DocumentFragment ? n.childNodes : [ n ]));
+    checkHierarchy(this, moving);
+    // as in the DOM, insert everything before the first child that isn't itself being inserted
+    const reference = this.childNodes.find(child => !moving.includes(child)) ?? null;
+    for (const n of insertNodes) {
+      this.insertBefore(n, reference);
     }
   }
 
