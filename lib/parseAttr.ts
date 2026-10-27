@@ -21,14 +21,6 @@ function isAttrChar (ch: string): boolean {
   );
 }
 
-function isQuoteSingle (ch: string): boolean {
-  return ch === "'";
-}
-
-function isQuoteDouble (ch: string): boolean {
-  return ch === '"';
-}
-
 function skipWS (s: string, i: number): number {
   let j = i;
   const n = s.length;
@@ -86,43 +78,42 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
     i += skipWS(s, i);
 
     // match value
-    let fnSeek: (s: string) => boolean;
-    if (s[i] === '"') {
-      fnSeek = isQuoteDouble;
+    const quote = s[i] === '"' || s[i] === "'" ? s[i] : '';
+    if (quote) {
       i++;
     }
-    else if (s[i] === "'") {
-      fnSeek = isQuoteSingle;
-      i++;
-    }
-    else if (laxAttr) {
-      fnSeek = isWS;
-    }
-    else {
+    else if (!laxAttr) {
       throw new ParserError('Attribute error: expected value');
     }
 
     const startValue = i;
     let endValue = -1;
-    do {
-      if (fnSeek(s[i])) {
-        endValue = i;
+    if (quote) {
+      endValue = s.indexOf(quote, i);
+      i = endValue === -1 ? n : endValue + 1;
+    }
+    else {
+      // unquoted values (lax mode) end at whitespace
+      do {
+        if (isWS(s[i])) {
+          endValue = i;
+          i++;
+          break;
+        }
         i++;
-        break;
-      }
-      i++;
-    } while (i < n);
+      } while (i < n);
+    }
 
     if (endValue === -1) {
       if (laxAttr) {
         const key = s.slice(nameStart, nameEnd);
-        r[key] = unescape(s.slice(startValue, n));
+        r[key] = unescape(s.slice(startValue, n), true);
         break;
       }
       throw new ParserError('Attribute error: unterminated value');
     }
 
-    r[s.slice(nameStart, nameEnd)] = unescape(s.slice(startValue, endValue));
+    r[s.slice(nameStart, nameEnd)] = unescape(s.slice(startValue, endValue), true);
 
     const j = i;
     i += skipWS(s, i);

@@ -10,7 +10,7 @@ function printAttributes (node: Node): string {
   let attrList = '';
   if (isElement(node)) {
     for (const attr of node.attributes) {
-      attrList += ` ${attr.fullName}="${escape(attr.value)}"`;
+      attrList += ` ${attr.fullName}="${escape(attr.value, true)}"`;
     }
     // for (const [ key, val ] of Object.entries(attr)) {
     //   attrList += ` ${key}="${escape(val)}"`;

@@ -40,7 +40,7 @@ export function simplePrint (node: Node | DocumentFragment): string {
     let attrList = '';
     if (isElement(node)) {
       for (const attr of node.attributes) {
-        attrList += ` ${attr.fullName}="${escape(attr.value)}"`;
+        attrList += ` ${attr.fullName}="${escape(attr.value, true)}"`;
       }
     }
     return children

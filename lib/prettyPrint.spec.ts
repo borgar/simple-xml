@@ -9,11 +9,11 @@ describe('prettyPrint', () => {
 
     expect(
       parseXML(`
-<node enc='&lt; &gt; &amp; &quot; &apos; &#12; &#xAB;'>
-  pcdata &lt; &gt; &amp; &quot; &apos; &#12; &#xAB;
+<node enc='&lt; &gt; &amp; &quot; &apos; &#9; &#xAB;'>
+  pcdata &lt; &gt; &amp; &quot; &apos; &#9; &#xAB;
 </node>`.trim()).toString()
-    ).toBe(`<node enc="&lt; &gt; &amp; &quot; &apos; &#12; «">
-  pcdata &lt; &gt; &amp; &quot; &apos; &#12; «
+    ).toBe(`<node enc="&lt; &gt; &amp; &quot; &apos; &#9; «">
+  pcdata &lt; &gt; &amp; &quot; &apos; &#9; «
 </node>`);
 
     expect(
