@@ -9,7 +9,6 @@ import type { Node } from './Node.ts';
  * @param parent The node the nodes are inserted into.
  * @param nodes The nodes to insert.
  */
-
 export function checkHierarchy (parent: Node | DocumentFragment, nodes: readonly Node[]) {
   // An ancestor of parent has at least one child, so unless one of the nodes
   // is parent itself, the walk is only needed for nodes that have children.
