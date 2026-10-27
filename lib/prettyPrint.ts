@@ -5,16 +5,14 @@ import type { TextNode } from './TextNode.ts';
 import { CDATA_SECTION_NODE, DOCUMENT_NODE, ELEMENT_NODE, TEXT_NODE } from './constants.js';
 import { escape } from './escape.js';
 import { isElement } from './isElement.ts';
+import { ATTRS } from './attrList.ts';
 
 function printAttributes (node: Node): string {
   let attrList = '';
   if (isElement(node)) {
-    for (const attr of node.attributes) {
+    for (const attr of node[ATTRS]) {
       attrList += ` ${attr.fullName}="${escape(attr.value, true)}"`;
     }
-    // for (const [ key, val ] of Object.entries(attr)) {
-    //   attrList += ` ${key}="${escape(val)}"`;
-    // }
   }
   return attrList;
 }

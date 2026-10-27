@@ -11,7 +11,8 @@ import type { CreateChildArgument } from './CreateChildArgument.ts';
 import { prettyPrint } from './prettyPrint.ts';
 import { simplePrint } from './simplePrint.ts';
 import type { XMLAttr } from './XMLAttr.ts';
-import { createNamedNodeMap, type NamedNodeMap } from './NamedNodeMap.ts';
+import { createNamedNodeMap, NamedNodeMapImpl, type NamedNodeMap } from './NamedNodeMap.ts';
+import { ATTRS } from './attrList.ts';
 import { Attr } from './Attr.ts';
 import { splitTagName } from './splitTagName.ts';
 
@@ -38,8 +39,11 @@ export class Element extends Node {
   closed: boolean;
   /** The node's parent node. */
   parentNode: Element | null = null;
-  /** A list of attributes assigned to this element. */
-  attributes: NamedNodeMap;
+  /** @internal The attributes, in order. */
+  [ATTRS]: Attr[];
+  // A map over the same array, and the proxy that `attributes` returns, made on first read.
+  #attrs: NamedNodeMapImpl;
+  #attrProxy: NamedNodeMap | null = null;
 
   /**
    * Constructs a new Element instance.
@@ -58,13 +62,25 @@ export class Element extends Node {
 
     this.closed = !!closed;
 
-    this.attributes = createNamedNodeMap();
+    const list: Attr[] = [];
+    this[ATTRS] = list;
+    this.#attrs = new NamedNodeMapImpl(list);
     this.setAttrValues(attr ?? null);
 
     // inherited instance props from Node
     this.nodeName = this.localName.toUpperCase();
     this.nodeType = ELEMENT_NODE;
-    this.childNodes = [];
+  }
+
+  /** A list of attributes assigned to this element. */
+  get attributes (): NamedNodeMap {
+    // Test tools such as Vitest copy elements with Object.create(prototype) and
+    // then copy the own properties, so a copy has the attribute array but no
+    // private fields.
+    if (!(#attrs in this)) {
+      return createNamedNodeMap(new NamedNodeMapImpl((this as Element)[ATTRS]));
+    }
+    return (this.#attrProxy ??= createNamedNodeMap(this.#attrs));
   }
 
   get tagName () {
@@ -195,7 +211,7 @@ export class Element extends Node {
    * @returns The attribute.
    */
   getAttribute (name: string): string | null {
-    return this.attributes.getNamedItem(name)?.value ?? null;
+    return this.#attrs.getNamedItem(name)?.value ?? null;
   }
 
   /**
@@ -205,7 +221,7 @@ export class Element extends Node {
    * @param value The value to set
    */
   setAttribute (name: string, value: string | number | boolean) {
-    this.attributes.setNamedItem(new Attr(name, value));
+    this.#attrs.setNamedItem(new Attr(name, value));
   }
 
   /**
@@ -215,7 +231,7 @@ export class Element extends Node {
    * @returns True if the attribute is present.
    */
   hasAttribute (name: string): boolean {
-    return this.attributes.getNamedItem(name) != null;
+    return this.#attrs.getNamedItem(name) != null;
   }
 
   /**
@@ -234,9 +250,12 @@ export class Element extends Node {
       ) {
         throw new TypeError('Attributes must be an object of names and values, or null.');
       }
-      for (const [ key, val ] of Object.entries(attr)) {
-        if (val != null) {
-          this.setAttribute(key, val);
+      for (const key in attr) {
+        if (Object.hasOwn(attr, key)) {
+          const val = attr[key];
+          if (val != null) {
+            this.setAttribute(key, val);
+          }
         }
       }
     }
@@ -248,8 +267,8 @@ export class Element extends Node {
    * @param name The qualified name of the attribute to remove.
    */
   removeAttribute (name: string) {
-    if (this.attributes.getNamedItem(name)) {
-      this.attributes.removeNamedItem(name);
+    if (this.#attrs.getNamedItem(name)) {
+      this.#attrs.removeNamedItem(name);
     }
   }
 
@@ -266,14 +285,24 @@ export class Element extends Node {
    * Strings are inserted as equivalent Text nodes.
    */
   append (...nodes: (CreateChildArgument | CreateChildArgument[])[]): void {
-    const flatNodes = nodes.flat();
-    for (const n of flatNodes) {
-      if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
-        this.appendChild(new TextNode(n));
+    for (const n of nodes) {
+      if (Array.isArray(n)) {
+        for (const m of n) {
+          this.#appendOne(m);
+        }
       }
-      else if (n) {
-        this.appendChild(n);
+      else {
+        this.#appendOne(n);
       }
+    }
+  }
+
+  #appendOne (n: CreateChildArgument): void {
+    if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') {
+      this.appendChild(new TextNode(n));
+    }
+    else if (n) {
+      this.appendChild(n);
     }
   }
 

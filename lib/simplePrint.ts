@@ -7,6 +7,7 @@ import { CDATA_SECTION_NODE, DOCUMENT_NODE, TEXT_NODE } from './constants.js';
 import { escape } from './escape.js';
 import { HierarchyError } from './errors.js';
 import { isElement } from './isElement.ts';
+import { ATTRS } from './attrList.ts';
 
 /**
  * Serialize a node tree to a compact XML string without added whitespace,
@@ -24,28 +25,39 @@ export function simplePrint (node: Node | DocumentFragment): string {
     if (!root) throw new HierarchyError('root element is missing');
     return simplePrint(root);
   }
-  else if (node.nodeType === CDATA_SECTION_NODE) {
-    return `<![CDATA[${(node as CDataNode).value.replace(/]]>/g, ']]&gt;')}]]>`;
+  const out = { s: '' };
+  writeNode(node, out);
+  return out.s;
+}
+
+// Appends the node to one output string, which is faster than building and
+// joining a string for each element.
+function writeNode (node: Node, out: { s: string }): void {
+  const type = node.nodeType;
+  if (type === TEXT_NODE) {
+    out.s += escape((node as TextNode).data);
   }
-  else if (node.nodeType === TEXT_NODE) {
-    return escape((node as TextNode).data);
+  else if (type === CDATA_SECTION_NODE) {
+    out.s += `<![CDATA[${(node as CDataNode).value.replace(/]]>/g, ']]&gt;')}]]>`;
   }
   else if (isElement(node)) {
     const tagName = node.fullName;
-    const { childNodes } = node;
-    let children = '';
-    for (const n of childNodes) {
-      children += simplePrint(n);
+    let open = '<' + tagName;
+    for (const attr of node[ATTRS]) {
+      open += ' ' + attr.fullName + '="' + escape(attr.value, true) + '"';
     }
-    let attrList = '';
-    if (isElement(node)) {
-      for (const attr of node.attributes) {
-        attrList += ` ${attr.fullName}="${escape(attr.value, true)}"`;
-      }
+    out.s += open;
+    const mark = out.s.length;
+    out.s += '>';
+    for (const child of node.childNodes) {
+      writeNode(child, out);
     }
-    return children
-      ? `<${tagName}${attrList}>${children}</${tagName}>`
-      : `<${tagName}${attrList} />`;
+    // an element whose children print as nothing closes itself
+    if (out.s.length === mark + 1) {
+      out.s = out.s.slice(0, mark) + ' />';
+    }
+    else {
+      out.s += '</' + tagName + '>';
+    }
   }
-  return '';
 }

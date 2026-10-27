@@ -3,7 +3,8 @@ const REPLACEMENT = '&#xFFFD;';
 // eslint-disable-next-line no-control-regex
 const reNeedsEscape = /["&'<>\t\x00-\x08\x0B\x0C\x0E-\x1F\uD800-\uDFFF\uFFFE\uFFFF]/;
 
-const reLineBreak = /[\n\r]/;
+// eslint-disable-next-line no-control-regex
+const reNeedsEscapeAttr = /["&'<>\t\n\r\x00-\x08\x0B\x0C\x0E-\x1F\uD800-\uDFFF\uFFFE\uFFFF]/;
 
 /**
  * Escape XML entities in a string. Characters that XML 1.0 doesn't allow
@@ -18,7 +19,7 @@ const reLineBreak = /[\n\r]/;
  */
 export function escape (s: string, attribute: boolean = false): string {
   // A regex scan is faster than the loop when nothing needs escaping.
-  if (!s || (!reNeedsEscape.test(s) && !(attribute && reLineBreak.test(s)))) {
+  if (!s || !(attribute ? reNeedsEscapeAttr : reNeedsEscape).test(s)) {
     return s;
   }
   const len = s.length;

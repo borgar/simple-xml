@@ -2,16 +2,20 @@ import type { Attr } from './Attr.ts';
 import { NotFoundError } from './errors.js';
 
 /**
- * Runtime class for {@link NamedNodeMap}. Kept un-exported so that the public
- * `NamedNodeMap` type can be widened with an `Attr | null` index signature without
- * the index signature having to be compatible with the class's typed members
- * (`length`, `getNamedItem(): Attr | null`, etc.).
+ * Runtime class for {@link NamedNodeMap}. Not exported from the package, so that
+ * the public `NamedNodeMap` type can be widened with an `Attr | null` index
+ * signature without the index signature having to be compatible with the
+ * class's typed members (`length`, `getNamedItem(): Attr | null`, etc.).
+ * Elements use it directly, without the proxy, for speed.
  */
-class NamedNodeMapImpl {
+export class NamedNodeMapImpl {
   #attr: Attr[];
 
-  constructor () {
-    this.#attr = [];
+  /**
+   * @param [list] The array to keep the attributes in. The map changes it in place.
+   */
+  constructor (list: Attr[] = []) {
+    this.#attr = list;
   }
 
   // Test tools such as Vitest copy objects with Object.create(prototype) and
@@ -40,15 +44,15 @@ class NamedNodeMapImpl {
   // Returns the old attribute if replaced, or null if the attribute is new.
   setNamedItem (attr: Attr) {
     const fn = attr.fullName;
-    const existing = this.#attr.findIndex(d => d.fullName === fn);
-    if (existing > -1) {
-      const old = this.#attr[existing];
-      this.#attr[existing] = attr;
-      return old;
+    const list = this.#attr;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].fullName === fn) {
+        const old = list[i];
+        list[i] = attr;
+        return old;
+      }
     }
-    else {
-      this.#attr.push(attr);
-    }
+    list.push(attr);
     return null;
   }
 
@@ -122,6 +126,12 @@ const nameNodeMapProxy: ProxyHandler<NamedNodeMapImpl> = {
 // Index and name lookups return null when the attribute is missing.
 export type NamedNodeMap = NamedNodeMapImpl & Readonly<Record<string, Attr | null>>;
 
-export function createNamedNodeMap (): NamedNodeMap {
-  return new Proxy(new NamedNodeMapImpl(), nameNodeMapProxy) as NamedNodeMap;
+/**
+ * Wrap an attribute map in the proxy that exposes attributes by index and name.
+ *
+ * @param [map] The map to wrap. A new, empty map is used if omitted.
+ * @returns The proxied map.
+ */
+export function createNamedNodeMap (map: NamedNodeMapImpl = new NamedNodeMapImpl()): NamedNodeMap {
+  return new Proxy(map, nameNodeMapProxy) as NamedNodeMap;
 }

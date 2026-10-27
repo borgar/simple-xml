@@ -37,12 +37,18 @@ export class Node {
    * @param node The new child node
    * @returns The same node that was passed in.
    */
-  appendChild<T extends Node | DocumentFragment> (node: T): T {
+  appendChild<T extends Node | DocumentFragment> (this: Node, node: T): T {
     if (!node) {
       throw new TypeError('1 argument required, but 0 present.');
     }
     if (!(node instanceof Node) && !(node instanceof DocumentFragment)) {
       throw new TypeError('Cannot appendChild: Child is not a node');
+    }
+    // a detached node without children can't contain this one, so it needs no checks
+    if (node instanceof Node && node !== this && !node.parentNode && !node.childNodes.length) {
+      node.parentNode = this;
+      this.childNodes.push(node);
+      return node;
     }
     appendChild(this, node);
     return node;
