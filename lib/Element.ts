@@ -1,5 +1,5 @@
 import { Node } from './Node.js';
-import { ELEMENT_NODE, XML_DECLARATION } from './constants.js';
+import { ELEMENT_NODE } from './constants.js';
 import { JsonML, type JsonMLElement } from './JsonML.js';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
@@ -281,8 +281,6 @@ export class Element extends Node {
    * @returns The document as an XML string.
    */
   print (pretty = false): string {
-    return `${XML_DECLARATION}\n` + (
-      pretty ? prettyPrint(this) : simplePrint(this)
-    );
+    return pretty ? prettyPrint(this) : simplePrint(this);
   }
 }
