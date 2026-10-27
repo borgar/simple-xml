@@ -116,6 +116,16 @@ describe('parse-simple', () => {
     expect(parseXML('<?foo?><?foo value?><a />').toJS()).toEqual([ 'a' ]);
     expect(parseXML('<?foo  \r\n\t  bar ?><a />').toJS()).toEqual([ 'a' ]);
 
+    // after the root, including as the last thing in the input
+    expect(parseXML('<a /><?foo?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a /><?foo value?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a /><!--c--><?foo value?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a /><?foo?><?bar?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a></a>\n<?foo value?>\n').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<?foo?>', emptyOk).toJS()).toEqual([]);
+    expect(() => parseXML('<a /><?foo')).toThrow();
+    expect(() => parseXML('<a /><?foo?')).toThrow();
+
     expect(() => parseXML('<')).toThrow();
     expect(() => parseXML('<？')).toThrow();
     expect(() => parseXML('<?？')).toThrow();

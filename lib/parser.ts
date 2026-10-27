@@ -94,15 +94,10 @@ const fnComment: ParserFunction = (s, pos = 0) => {
 // /^<!\[CDATA\[([^\0]*?)\]\]>/
 const fnCData: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.startsWith('<![CDATA[', pos)) {
-    const max = s.length - 3;
-    let i = pos + 9;
-    do {
-      if (s.startsWith(']]>', i)) {
-        return [ s.slice(pos, i + 3), s.slice(pos + 9, i) ];
-      }
-      i++;
+    const i = s.indexOf(']]>', pos + 9);
+    if (i !== -1) {
+      return [ s.slice(pos, i + 3), s.slice(pos + 9, i) ];
     }
-    while (i < max);
   }
   return null;
 };
@@ -110,15 +105,10 @@ const fnCData: ParserFunction = (s, pos = 0) => {
 // /^<\?([^>]*)\?>/
 const fnInstr: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.charCodeAt(pos + 1) === QUESTION) {
-    const max = s.length - 2;
-    let i = pos + 2;
-    do {
-      if (s.startsWith('?>', i)) {
-        return [ s.slice(pos, i + 2), s.slice(pos + 2, i) ];
-      }
-      i++;
+    const i = s.indexOf('?>', pos + 2);
+    if (i !== -1) {
+      return [ s.slice(pos, i + 2), s.slice(pos + 2, i) ];
     }
-    while (i < max);
   }
   return null;
 };
