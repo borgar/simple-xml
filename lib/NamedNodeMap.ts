@@ -14,12 +14,27 @@ class NamedNodeMapImpl {
     this.#attr = [];
   }
 
+  // Test tools such as Vitest copy objects with Object.create(prototype) and
+  // then copy the own properties. A copy has the indexed Attrs but not #attr,
+  // so read-only methods fall back to those.
+  static #list (map: NamedNodeMapImpl): Attr[] {
+    if (#attr in map) {
+      return map.#attr;
+    }
+    const list: Attr[] = [];
+    const copy = map as unknown as Record<number, Attr>;
+    for (let i = 0; i in copy; i++) {
+      list.push(copy[i]);
+    }
+    return list;
+  }
+
   item (index: number): Attr | null {
-    return this.#attr[index] ?? null;
+    return NamedNodeMapImpl.#list(this)[index] ?? null;
   }
 
   getNamedItem (qualifiedName: string) {
-    return this.#attr.find(d => d.fullName === qualifiedName) ?? null;
+    return NamedNodeMapImpl.#list(this).find(d => d.fullName === qualifiedName) ?? null;
   }
 
   // Returns the old attribute if replaced, or null if the attribute is new.
@@ -47,11 +62,11 @@ class NamedNodeMapImpl {
   }
 
   get length () {
-    return Object.keys(this.#attr).length;
+    return NamedNodeMapImpl.#list(this).length;
   }
 
   *[Symbol.iterator] (): IterableIterator<Attr> {
-    yield* this.#attr;
+    yield* NamedNodeMapImpl.#list(this);
   }
 }
 

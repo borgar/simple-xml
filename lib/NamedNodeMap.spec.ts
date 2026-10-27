@@ -1,4 +1,5 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
+import { processError } from '@vitest/utils/error';
 import { Attr, Element, NotFoundError } from '../lib/index.ts';
 import type { NamedNodeMap } from '../lib/index.ts';
 
@@ -445,6 +446,53 @@ describe('NamedNodeMap', () => {
       el.attributes.removeNamedItem('a');
       expect(el.getAttribute('a')).toBeNull();
       expect(el.hasAttribute('a')).toBe(false);
+    });
+  });
+
+  // Vitest copies objects for diffs with Object.create(prototype) and then
+  // copies the own properties. A copy has the indexed Attrs but not #attr.
+  describe('copies made from own properties', () => {
+    function copyLikeVitest (map: NamedNodeMap): NamedNodeMap {
+      const copy = Object.create(Object.getPrototypeOf(map) as object) as NamedNodeMap;
+      for (const key of Object.getOwnPropertyNames(map)) {
+        Object.defineProperty(copy, key, Object.getOwnPropertyDescriptor(map, key)!);
+      }
+      return copy;
+    }
+
+    it('support length, iteration, item(), and getNamedItem()', () => {
+      const el = new Element('foo', { 'a': '1', 'p:b': '2' });
+      const copy = copyLikeVitest(el.attributes);
+      expect(copy.length).toBe(2);
+      expect([ ...copy ].map(d => d.fullName)).toEqual([ 'a', 'p:b' ]);
+      expect(Array.from(copy, d => d?.value)).toEqual([ '1', '2' ]);
+      expect(copy.item(1)?.fullName).toBe('p:b');
+      expect(copy.item(2)).toBeNull();
+      expect(copy.getNamedItem('p:b')?.value).toBe('2');
+      expect(copy.getNamedItem('b')).toBeNull();
+    });
+
+    it('do not let the copy be changed as if it were the original', () => {
+      const el = new Element('foo', { a: '1' });
+      const copy = copyLikeVitest(el.attributes);
+      expect(() => copy.setNamedItem(new Attr('b', '2'))).toThrow(TypeError);
+      expect(() => copy.removeNamedItem('a')).toThrow(TypeError);
+      expect(el.attributes.length).toBe(1);
+    });
+
+    it('let Vitest print the diff for a failed assertion on elements', () => {
+      let error: unknown;
+      try {
+        expect(new Element('a', { x: '1' })).toEqual(new Element('b', { x: '1' }));
+      }
+      catch (err) {
+        error = err;
+      }
+      // Vitest runs processError on every failure before reporting it
+      const processed = processError(error) as { diff?: string };
+      expect(processed.diff).toContain('<a');
+      expect(processed.diff).toContain('<b');
+      expect(processed.diff).toContain('x="1"');
     });
   });
 });
