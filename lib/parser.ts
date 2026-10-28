@@ -250,6 +250,7 @@ export function parseXML (
 
   let pos = 0;
   let root = NON_ELEMENT;
+  let rootSelfClosing = false;
 
   function scanUntil (char: string, parse: ParseHandler): boolean {
     const s = pos;
@@ -335,9 +336,9 @@ export function parseXML (
   }
 
   // Check an element's namespaces, and enter its scope if it has content.
-  function enterNS (elm: Element, attr: Record<string, string>) {
+  function enterNS (elm: Element, attr: Record<string, string>, selfClosing: boolean) {
     const scope = checkNS(elm, attr);
-    if (!elm.closed) {
+    if (!selfClosing) {
       nsStack.push(nsScope);
       nsScope = scope;
     }
@@ -369,8 +370,9 @@ export function parseXML (
   // root tag
   maybeMatchFn(fnTag, (_, t, a, c) => {
     const attr = parseAttr(a, options.laxAttr);
-    root = new Element(t, attr, !!c);
-    if (options.ns) enterNS(root, attr);
+    root = new Element(t, attr);
+    rootSelfClosing = !!c;
+    if (options.ns) enterNS(root, attr, rootSelfClosing);
     return true;
   });
 
@@ -381,7 +383,7 @@ export function parseXML (
   let current: Element | null = root;
 
   // root tag content
-  if (root !== NON_ELEMENT && !root.closed) {
+  if (root !== NON_ELEMENT && !rootSelfClosing) {
     let some = false;
     let lastPos = pos;
     do {
@@ -410,10 +412,10 @@ export function parseXML (
         ||
         maybeMatchFn(fnTag, (_, t, a, c) => {
           const attr = parseAttr(a, options.laxAttr);
-          const elm = new Element(t, attr, !!c);
-          if (options.ns) enterNS(elm, attr);
+          const elm = new Element(t, attr);
+          if (options.ns) enterNS(elm, attr, !!c);
           current?.appendChild(elm);
-          if (!elm.closed) {
+          if (!c) {
             current = elm;
           }
           return true;
@@ -440,7 +442,7 @@ export function parseXML (
   }
 
   // root should have been closed
-  if (root !== NON_ELEMENT && !root.closed && current !== null) {
+  if (root !== NON_ELEMENT && !rootSelfClosing && current !== null) {
     throw new ParserError(`Expected </${root.localName}> got EOF`);
   }
 

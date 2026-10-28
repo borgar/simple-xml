@@ -37,8 +37,6 @@ export class Element extends Node {
   prefix: string | null;
   /** The name of the tag for the given element, excluding any namespace prefix. */
   localName: string;
-  /** A state representing if the element was "self-closed" when read. */
-  closed: boolean;
   /** The node's parent node. */
   parentNode: Element | null = null;
   /** @internal The attributes, in order. */
@@ -52,17 +50,14 @@ export class Element extends Node {
    *
    * @param tagName The tag name of the node.
    * @param [attr={}] A collection of attributes to assign. Values of null or undefined will be ignored.
-   * @param [closed=false] Was the element "self-closed" when read.
    * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
-  constructor (tagName: string, attr?: XMLAttr | null, closed: boolean = false) {
+  constructor (tagName: string, attr?: XMLAttr | null) {
     super();
 
     const colon = qnameColon(tagName);
     this.prefix = colon === -1 ? null : tagName.slice(0, colon);
     this.localName = colon === -1 ? tagName : tagName.slice(colon + 1);
-
-    this.closed = !!closed;
 
     const list: Attr[] = [];
     this[ATTRS] = list;

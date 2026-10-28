@@ -110,6 +110,22 @@ describe('parse-simple', () => {
     expect(() => parseXML('<a x=1/>foo')).toThrow();
   });
 
+  it('self-closing and empty elements are the same', () => {
+    // detach the roots so the comparison doesn't reach the documents
+    const tree = (src: string) => {
+      const doc = parseXML(src);
+      const el = doc.root;
+      doc.root = null;
+      return el;
+    };
+    expect(tree('<a><b/></a>')).toEqual(tree('<a><b></b></a>'));
+    expect(tree('<a/>')).toEqual(tree('<a></a>'));
+    expect('closed' in parseXML('<a/>').root!).toBe(false);
+    expect(parseXML('<a><b/><c>x</c></a>').toJS()).toEqual([ 'a', [ 'b' ], [ 'c', 'x' ] ]);
+    expect(() => parseXML('<a><b></a>')).toThrow();
+    expect(() => parseXML('<a>')).toThrow();
+  });
+
   it('element and attribute names', () => {
     expect(parseXML('<a.b-c_d e.f="1"/>').toJS()).toEqual([ 'a.b-c_d', { 'e.f': '1' } ]);
     expect(parseXML('<\u00E9l\u00E9ment \u00E0="1"/>').toJS()).toEqual([ '\u00E9l\u00E9ment', { '\u00E0': '1' } ]);
