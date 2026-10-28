@@ -7,7 +7,7 @@ export function findAll (node: Element | Document, tagName: string, list: Elemen
   if (ch) {
     for (const c of ch) {
       if (isElement(c)) {
-        if (c.tagName === tagName || tagName === '*') {
+        if (c.localName === tagName || tagName === '*') {
           list.push(c);
         }
         // and its children... (traversal order)

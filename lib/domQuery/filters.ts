@@ -14,7 +14,7 @@ export const FILTERS: Record<string, Filter> = {
     const found: Element[] = [];
     for (const parent of elms) {
       parent.children.forEach(elm => {
-        if (nameMatch(tagName, elm.tagName)) {
+        if (nameMatch(tagName, elm.localName)) {
           found.push(elm);
         }
       });
@@ -30,7 +30,7 @@ export const FILTERS: Record<string, Filter> = {
         const nodes = elm.parentNode.children;
         const idx = nodes.indexOf(elm);
         const prev = nodes.at(idx + 1);
-        if (prev && nameMatch(tagName, prev.tagName)) {
+        if (prev && nameMatch(tagName, prev.localName)) {
           found.push(prev);
         }
       }
@@ -47,7 +47,7 @@ export const FILTERS: Record<string, Filter> = {
       if (parent && !parents.includes(parent)) {
         parents.push(parent);
         const elmIdx = parent.childNodes.indexOf(elm);
-        const siblings = parent.children.filter(d => nameMatch(tagName, d.tagName));
+        const siblings = parent.children.filter(d => nameMatch(tagName, d.localName));
         for (let i = 0; i < siblings.length; i++) {
           const ref = siblings.at(i)!;
           if (ref.parentNode && elmIdx < ref.parentNode.childNodes.indexOf(ref)) {
@@ -117,9 +117,9 @@ export const FILTERS: Record<string, Filter> = {
         let siblings = [ elm ];
         if (elm.parentNode) {
           siblings = elm.parentNode.children;
-          const tn = tagName === '*' ? elm.tagName : tagName;
+          const tn = tagName === '*' ? elm.localName : tagName;
           if (tn !== '*' && tn) {
-            siblings = siblings.filter(n => nameMatch(tn, n.tagName));
+            siblings = siblings.filter(n => nameMatch(tn, n.localName));
           }
         }
         const index = siblings.indexOf(elm) + 1;
@@ -175,7 +175,7 @@ export const FILTERS: Record<string, Filter> = {
   ),
 
   byTagName: (s, elms, not) => (
-    elms.filter(d => xor(d.tagName === s, not))
+    elms.filter(d => xor(d.localName === s, not))
   ),
 
   attrEqual: (s, elms, not, name) => (

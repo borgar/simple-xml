@@ -33,3 +33,12 @@ export const DOCUMENT_FRAGMENT_NODE: number = 11;
 
 /** A documentation node identifier */
 export const NOTATION_NODE: number = 12;
+
+/** XML declaration string */
+export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+
+/** The namespace bound to the `xml` prefix */
+export const XML_NS = 'http://www.w3.org/XML/1998/namespace';
+
+/** The namespace bound to the `xmlns` prefix */
+export const XMLNS_NS = 'http://www.w3.org/2000/xmlns/';

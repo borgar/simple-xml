@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseXML } from '../lib/index.js';
+import { InvalidCharacterError, parseXML } from '../lib/index.js';
 
 const emptyOk = { emptyDoc: true };
 const laxAttr = { laxAttr: true };
@@ -110,11 +110,51 @@ describe('parse-simple', () => {
     expect(() => parseXML('<a x=1/>foo')).toThrow();
   });
 
+  it('self-closing and empty elements are the same', () => {
+    // detach the roots so the comparison doesn't reach the documents
+    const tree = (src: string) => {
+      const doc = parseXML(src);
+      const el = doc.root;
+      doc.root = null;
+      return el;
+    };
+    expect(tree('<a><b/></a>')).toEqual(tree('<a><b></b></a>'));
+    expect(tree('<a/>')).toEqual(tree('<a></a>'));
+    expect('closed' in parseXML('<a/>').root!).toBe(false);
+    expect(parseXML('<a><b/><c>x</c></a>').toJS()).toEqual([ 'a', [ 'b' ], [ 'c', 'x' ] ]);
+    expect(() => parseXML('<a><b></a>')).toThrow();
+    expect(() => parseXML('<a>')).toThrow();
+  });
+
+  it('element and attribute names', () => {
+    expect(parseXML('<a.b-c_d e.f="1"/>').toJS()).toEqual([ 'a.b-c_d', { 'e.f': '1' } ]);
+    expect(parseXML('<\u00E9l\u00E9ment \u00E0="1"/>').toJS()).toEqual([ '\u00E9l\u00E9ment', { '\u00E0': '1' } ]);
+    expect(parseXML('<p:a xml:lang="en"/>').toJS()).toEqual([ 'p:a', { 'xml:lang': 'en' } ]);
+
+    expect(() => parseXML('<1a/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<-a/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a:b:c/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a><1b/></a>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a 1b="1"/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a b:="1"/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a 1b=1/>', laxAttr)).toThrow(InvalidCharacterError);
+  });
+
   it('processing instructions', () => {
     expect(parseXML('<?foo?><a />').toJS()).toEqual([ 'a' ]);
     expect(parseXML('<?foo value?><a />').toJS()).toEqual([ 'a' ]);
     expect(parseXML('<?foo?><?foo value?><a />').toJS()).toEqual([ 'a' ]);
     expect(parseXML('<?foo  \r\n\t  bar ?><a />').toJS()).toEqual([ 'a' ]);
+
+    // after the root, including as the last thing in the input
+    expect(parseXML('<a /><?foo?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a /><?foo value?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a /><!--c--><?foo value?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a /><?foo?><?bar?>').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<a></a>\n<?foo value?>\n').toJS()).toEqual([ 'a' ]);
+    expect(parseXML('<?foo?>', emptyOk).toJS()).toEqual([]);
+    expect(() => parseXML('<a /><?foo')).toThrow();
+    expect(() => parseXML('<a /><?foo?')).toThrow();
 
     expect(() => parseXML('<')).toThrow();
     expect(() => parseXML('<？')).toThrow();

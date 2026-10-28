@@ -1,0 +1,511 @@
+import { describe, it, expect } from 'vitest';
+import { Node } from './Node.ts';
+import { Element } from './Element.ts';
+import { TextNode } from './TextNode.ts';
+import { CDataNode } from './CDataNode.ts';
+import { DocumentFragment } from './DocumentFragment.ts';
+import { HierarchyError, NotFoundError } from './errors.ts';
+
+describe('Node', () => {
+  describe('constructor / default properties', () => {
+    it('has expected default property values', () => {
+      const node = new Node();
+      expect(node.childNodes).toEqual([]);
+      expect(node.nodeName).toBe('#node');
+      expect(node.nodeType).toBe(0);
+      expect(node.parentNode).toBeNull();
+    });
+  });
+
+  describe('appendChild', () => {
+    it('appends a child node and sets parentNode', () => {
+      const parent = new Node();
+      const child = new Node();
+      parent.appendChild(child);
+      expect(parent.childNodes).toContain(child);
+      expect(child.parentNode).toBe(parent);
+    });
+
+    it('returns the appended node', () => {
+      const parent = new Node();
+      const child = new Node();
+      const result = parent.appendChild(child);
+      expect(result).toBe(child);
+    });
+
+    it('throws when called with no argument, null or undefined', () => {
+      const parent = new Node();
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.appendChild()).toThrow('1 argument required');
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.appendChild(null)).toThrow();
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.appendChild(undefined)).toThrow();
+    });
+
+    it('throws when called with a non-node value', () => {
+      const parent = new Node();
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.appendChild('hello')).toThrow('Cannot appendChild');
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.appendChild(42)).toThrow('Cannot appendChild');
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.appendChild({})).toThrow('Cannot appendChild');
+    });
+
+    it('moves a child from one parent to another', () => {
+      const parent1 = new Node();
+      const parent2 = new Node();
+      const child = new Node();
+      parent1.appendChild(child);
+      expect(parent1.childNodes).toContain(child);
+      expect(child.parentNode).toBe(parent1);
+      parent2.appendChild(child);
+      expect(parent1.childNodes).not.toContain(child);
+      expect(parent2.childNodes).toContain(child);
+      expect(child.parentNode).toBe(parent2);
+    });
+
+    it('appends multiple children in order', () => {
+      const parent = new Node();
+      const a = parent.appendChild(new Node());
+      const b = parent.appendChild(new Node());
+      const c = parent.appendChild(new Node());
+      expect(parent.childNodes).toEqual([ a, b, c ]);
+    });
+
+    it('appends DocumentFragment children in order', () => {
+      const frag = new DocumentFragment();
+      const a = frag.appendChild(new Node());
+      const b = frag.appendChild(new Node());
+      const c = frag.appendChild(new Node());
+      expect(frag.childNodes).toEqual([ a, b, c ]);
+
+      const parent = new Node();
+      parent.appendChild(frag);
+      expect(parent.childNodes).toEqual([ a, b, c ]);
+    });
+
+    it('re-appending an existing child moves it to the end', () => {
+      const parent = new Node();
+      const a = new Node();
+      const b = new Node();
+      parent.appendChild(a);
+      parent.appendChild(b);
+      expect(parent.childNodes).toEqual([ a, b ]);
+
+      parent.appendChild(a);
+      expect(parent.childNodes).toEqual([ b, a ]);
+    });
+  });
+
+  describe('insertBefore', () => {
+    it('inserts a node before a reference node', () => {
+      const parent = new Node();
+      const a = new Node();
+      const b = new Node();
+      const c = new Node();
+      parent.appendChild(a);
+      parent.appendChild(c);
+
+      parent.insertBefore(b, c);
+      expect(b.parentNode).toBe(parent);
+      expect(parent.childNodes.filter(d => d === b).length).toBe(1);
+    });
+
+    it('inserts DocumentFragment children in order', () => {
+      const frag = new DocumentFragment();
+      const a = frag.appendChild(new Node());
+      const b = frag.appendChild(new Node());
+      const c = frag.appendChild(new Node());
+      expect(frag.childNodes).toEqual([ a, b, c ]);
+
+      const parent = new Node();
+      const z = new Node();
+      parent.appendChild(z); // parent now only contains z
+
+      parent.insertBefore(frag, z);
+      expect(parent.childNodes).toEqual([ a, b, c, z ]);
+    });
+
+    it('falls back to appendChild when referenceNode is null', () => {
+      const parent = new Node();
+      const child = new Node();
+      parent.insertBefore(child, null);
+      expect(parent.childNodes).toContain(child);
+      expect(child.parentNode).toBe(parent);
+    });
+
+    it('moves node from previous parent when inserting', () => {
+      const oldParent = new Node();
+      const newParent = new Node();
+      const ref = new Node();
+      const child = new Node();
+
+      oldParent.appendChild(child);
+      newParent.appendChild(ref);
+
+      newParent.insertBefore(child, ref);
+      expect(oldParent.childNodes).not.toContain(child);
+      expect(child.parentNode).toBe(newParent);
+    });
+
+    describe('moving within the same parent', () => {
+      function abcd () {
+        const parent = new Element('p');
+        const nodes = [ 'a', 'b', 'c', 'd' ].map(n => parent.appendChild(new Element(n)));
+        const names = () => parent.childNodes.map(n => (n as Element).tagName).join('');
+        return { parent, nodes, names };
+      }
+
+      it('moves a node forward', () => {
+        const { parent, nodes: [ a, , c ], names } = abcd();
+        parent.insertBefore(a, c);
+        expect(names()).toBe('bacd');
+      });
+
+      it('moves a node backward', () => {
+        const { parent, nodes: [ a, , c ], names } = abcd();
+        parent.insertBefore(c, a);
+        expect(names()).toBe('cabd');
+      });
+
+      it('keeps a node in place when inserted before its next sibling', () => {
+        const { parent, nodes: [ a, b ], names } = abcd();
+        parent.insertBefore(a, b);
+        expect(names()).toBe('abcd');
+      });
+
+      it('keeps a node in place when it is its own reference', () => {
+        const { parent, nodes: [ , b, , d ], names } = abcd();
+        parent.insertBefore(b, b);
+        expect(names()).toBe('abcd');
+        parent.insertBefore(d, d);
+        expect(names()).toBe('abcd');
+        expect(b.parentNode).toBe(parent);
+      });
+    });
+
+    describe('a reference node that is not a child', () => {
+      it('throws NotFoundError', () => {
+        const parent = new Element('p');
+        parent.appendChild(new Element('a'));
+        expect(() => parent.insertBefore(new Element('x'), new Element('z'))).toThrow(NotFoundError);
+        expect(() => new Element('p').insertBefore(new Element('x'), new Element('z'))).toThrow(NotFoundError);
+      });
+
+      it('leaves the tree and the new node unchanged', () => {
+        const parent = new Element('p');
+        const a = parent.appendChild(new Element('a'));
+        const other = new Element('o');
+        const x = other.appendChild(new Element('x'));
+        const frag = new DocumentFragment();
+        const y = frag.appendChild(new Element('y'));
+        expect(() => parent.insertBefore(x, new Element('z'))).toThrow(NotFoundError);
+        expect(() => parent.insertBefore(frag, new Element('z'))).toThrow(NotFoundError);
+        expect(parent.childNodes).toEqual([ a ]);
+        expect(x.parentNode).toBe(other);
+        expect(other.childNodes).toEqual([ x ]);
+        expect(frag.childNodes).toEqual([ y ]);
+      });
+
+      it('reports a hierarchy error first', () => {
+        const parent = new Element('p');
+        const child = parent.appendChild(new Element('c'));
+        expect(() => child.insertBefore(parent, new Element('z'))).toThrow(HierarchyError);
+      });
+    });
+  });
+
+  describe('removeChild', () => {
+    it('removes a child and returns it', () => {
+      const parent = new Node();
+      const child = new Node();
+      parent.appendChild(child);
+      const removed = parent.removeChild(child);
+      expect(removed).toBe(child);
+      expect(parent.childNodes).not.toContain(child);
+      expect(child.parentNode).toBeNull();
+    });
+
+    it('throws when no argument is provided', () => {
+      const parent = new Node();
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.removeChild()).toThrow('not of type');
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.removeChild(null)).toThrow('not of type');
+      // @ts-expect-error - testing runtime error
+      expect(() => parent.removeChild(undefined)).toThrow('not of type');
+    });
+
+    it('throws when the node is not a child', () => {
+      const parent = new Node();
+      const orphan = new Node();
+      expect(() => parent.removeChild(orphan)).toThrow(
+        'The node to be removed is not a child of this node.'
+      );
+    });
+
+    it('removes the correct child when there are multiple', () => {
+      const parent = new Node();
+      const a = new Node();
+      const b = new Node();
+      const c = new Node();
+      parent.appendChild(a);
+      parent.appendChild(b);
+      parent.appendChild(c);
+
+      parent.removeChild(b);
+      expect(parent.childNodes).toEqual([ a, c ]);
+      expect(b.parentNode).toBeNull();
+    });
+
+    it('allows removing and re-adding a child', () => {
+      const parent = new Node();
+      const child = new Node();
+      parent.appendChild(child);
+      parent.removeChild(child);
+      expect(parent.childNodes.length).toBe(0);
+      expect(child.parentNode).toBeNull();
+
+      parent.appendChild(child);
+      expect(parent.childNodes).toEqual([ child ]);
+      expect(child.parentNode).toBe(parent);
+    });
+  });
+
+  describe('preserveSpace', () => {
+    it('returns false by default on a root node', () => {
+      const node = new Node();
+      expect(node.preserveSpace).toBe(false);
+    });
+
+    it('inherits preserveSpace from parent', () => {
+      // Use an Element with xml:space="preserve" as parent
+      const parent = new Element('root', { 'xml:space': 'preserve' });
+      const child = new Node();
+      parent.appendChild(child);
+      expect(child.preserveSpace).toBe(true);
+    });
+
+    it('returns false when parent does not preserve space', () => {
+      const parent = new Node();
+      const child = new Node();
+      parent.appendChild(child);
+      expect(child.preserveSpace).toBe(false);
+    });
+
+    it('propagates through multiple levels of ancestry', () => {
+      const grandparent = new Element('root', { 'xml:space': 'preserve' });
+      const parent = new Node();
+      const child = new Node();
+      grandparent.appendChild(parent);
+      parent.appendChild(child);
+      expect(child.preserveSpace).toBe(true);
+    });
+  });
+
+  describe('textContent', () => {
+    it('returns empty string for a node with no children', () => {
+      const node = new Node();
+      expect(node.textContent).toBe('');
+    });
+
+    it('returns text from TextNode children', () => {
+      const parent = new Node();
+      const text = new TextNode('hello world');
+      parent.appendChild(text);
+      expect(parent.textContent).toBe('hello world');
+    });
+
+    it('concatenates text from multiple TextNode children', () => {
+      // A whitespace-only TextNode returns '' when preserveSpace is false,
+      // so 'foo' + '' + 'bar' = 'foobar'
+      const parent = new Node();
+      parent.appendChild(new TextNode('foo'));
+      parent.appendChild(new TextNode(' '));
+      parent.appendChild(new TextNode('bar'));
+      expect(parent.textContent).toBe('foobar');
+    });
+
+    it('concatenates text including spaces when preserveSpace is true', () => {
+      const parent = new Element('div', { 'xml:space': 'preserve' });
+      parent.appendChild(new TextNode('foo'));
+      parent.appendChild(new TextNode(' '));
+      parent.appendChild(new TextNode('bar'));
+      expect(parent.textContent).toBe('foo bar');
+    });
+
+    it('collects text content from nested children recursively', () => {
+      const root = new Element('root');
+      const child = new Element('child');
+      const text = new TextNode('deep');
+      root.appendChild(child);
+      child.appendChild(text);
+      expect(root.textContent).toBe('deep');
+    });
+
+    it('includes CDataNode values', () => {
+      const parent = new Node();
+      parent.appendChild(new TextNode('before'));
+      parent.appendChild(new CDataNode(' cdata '));
+      parent.appendChild(new TextNode('after'));
+      expect(parent.textContent).toBe('before cdata after');
+    });
+
+    it('returns empty string for whitespace-only TextNode children (no preserveSpace)', () => {
+      const parent = new Element('div');
+      parent.appendChild(new TextNode('   '));
+      // TextNode with only whitespace returns '' when preserveSpace is false
+      expect(parent.textContent).toBe('');
+    });
+
+    it('preserves whitespace-only TextNode when preserveSpace is true', () => {
+      const parent = new Element('div', { 'xml:space': 'preserve' });
+      parent.appendChild(new TextNode('   '));
+      expect(parent.textContent).toBe('   ');
+    });
+  });
+
+  describe('toString', () => {
+    it('returns a string', () => {
+      const node = new Node();
+      expect(typeof node.toString()).toBe('string');
+    });
+
+    it('renders child elements to XML', () => {
+      const root = new Element('root');
+      const child = new Element('child');
+      root.appendChild(child);
+      const str = root.toString();
+      expect(str).toContain('<root>');
+      expect(str).toContain('<child');
+      expect(str).toContain('</root>');
+    });
+  });
+
+  describe('Element.prepend', () => {
+    function withChildren (...names: string[]) {
+      const parent = new Element('p');
+      const nodes = names.map(n => parent.appendChild(new Element(n)));
+      const names_ = () => parent.childNodes.map(n => (n instanceof Element ? n.tagName : (n as TextNode).data)).join(',');
+      return { parent, nodes, names: names_ };
+    }
+
+    it('inserts nodes and strings in argument order', () => {
+      const { parent, names } = withChildren('z');
+      parent.prepend(new Element('a'), new Element('b'), 'c', [ new Element('d'), 'e' ], null);
+      expect(names()).toBe('a,b,c,d,e,z');
+    });
+
+    it('works on an element without children', () => {
+      const { parent, names } = withChildren();
+      parent.prepend(new Element('a'), 'b');
+      expect(names()).toBe('a,b');
+    });
+
+    it('keeps argument order when the first child is one of the arguments', () => {
+      const first = withChildren('y', 'z');
+      first.parent.prepend(new Element('a'), first.nodes[0]);
+      expect(first.names()).toBe('a,y,z');
+
+      const last = withChildren('y', 'z');
+      last.parent.prepend(last.nodes[0], new Element('a'));
+      expect(last.names()).toBe('y,a,z');
+
+      const moved = withChildren('x', 'y', 'z');
+      moved.parent.prepend(moved.nodes[2], moved.nodes[0]);
+      expect(moved.names()).toBe('z,x,y');
+    });
+
+    it('inserts nothing when one of the nodes is an ancestor', () => {
+      const { parent, nodes: [ z ], names } = withChildren('z');
+      expect(() => z.prepend(new Element('a'), parent)).toThrow(HierarchyError);
+      expect(z.childNodes).toEqual([]);
+      expect(names()).toBe('z');
+    });
+  });
+
+  describe('hierarchy checks', () => {
+    // a > b > c
+    function tree () {
+      const a = new Element('a');
+      const b = new Element('b');
+      const c = new Element('c');
+      a.appendChild(b);
+      b.appendChild(c);
+      return { a, b, c };
+    }
+    function expectUnchanged ({ a, b, c }: ReturnType<typeof tree>) {
+      expect(a.parentNode).toBeNull();
+      expect(a.childNodes).toEqual([ b ]);
+      expect(b.parentNode).toBe(a);
+      expect(b.childNodes).toEqual([ c ]);
+      expect(c.parentNode).toBe(b);
+      expect(c.childNodes).toEqual([]);
+    }
+
+    it('appendChild rejects the node itself', () => {
+      const t = tree();
+      expect(() => t.b.appendChild(t.b)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('appendChild rejects a parent or a more distant ancestor', () => {
+      const t = tree();
+      expect(() => t.b.appendChild(t.a)).toThrow(HierarchyError);
+      expect(() => t.c.appendChild(t.a)).toThrow(HierarchyError);
+      expect(() => t.c.appendChild(t.b)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('insertBefore rejects the node itself or an ancestor', () => {
+      const t = tree();
+      expect(() => t.b.insertBefore(t.b, t.c)).toThrow(HierarchyError);
+      expect(() => t.b.insertBefore(t.a, t.c)).toThrow(HierarchyError);
+      expect(() => t.c.insertBefore(t.a, null)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('append and prepend reject an ancestor', () => {
+      const t = tree();
+      expect(() => t.c.append(t.a)).toThrow(HierarchyError);
+      expect(() => t.c.prepend(t.a)).toThrow(HierarchyError);
+      expectUnchanged(t);
+    });
+
+    it('rejects a fragment that holds an ancestor, without inserting any of it', () => {
+      const t = tree();
+      const x = new Element('x');
+      const frag = new DocumentFragment();
+      frag.appendChild(x);
+      frag.appendChild(t.a);
+      expect(() => t.c.appendChild(frag)).toThrow(HierarchyError);
+      expect(() => t.b.insertBefore(frag, t.c)).toThrow(HierarchyError);
+      expectUnchanged(t);
+      expect(x.parentNode).toBeNull();
+    });
+
+    it('rejects appending a fragment to itself', () => {
+      const frag = new DocumentFragment();
+      const x = new Element('x');
+      frag.appendChild(x);
+      expect(() => frag.appendChild(frag)).toThrow(HierarchyError);
+      expect(frag.childNodes).toEqual([ x ]);
+    });
+
+    it('still allows moving a node up, across, or out of a fragment', () => {
+      const t = tree();
+      t.a.appendChild(t.c);
+      expect(t.c.parentNode).toBe(t.a);
+      expect(t.a.childNodes).toEqual([ t.b, t.c ]);
+      t.b.insertBefore(t.c, null);
+      expect(t.c.parentNode).toBe(t.b);
+      const frag = new DocumentFragment();
+      const x = new Element('x');
+      frag.appendChild(x);
+      t.c.appendChild(frag);
+      expect(x.parentNode).toBe(t.c);
+    });
+  });
+});

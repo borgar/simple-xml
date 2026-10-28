@@ -7,13 +7,17 @@ import { CDataNode } from './CDataNode.js';
 import { unescape } from './unescape.js';
 import { removeCR } from './removeCR.js';
 import { parseAttr } from './parseAttr.js';
+import { NamespaceError, ParserError } from './errors.js';
+import { XML_NS, XMLNS_NS } from './constants.js';
 
 const DEFAULTOPTIONS = {
   emptyDoc: false,
-  laxAttr: false
+  laxAttr: false,
+  ns: false
 };
 
-const NON_ELEMENT = new Element('#');
+// a placeholder for a missing root, compared by identity
+const NON_ELEMENT = new Element('none');
 
 function isWS (ch: string): boolean {
   return (
@@ -91,15 +95,10 @@ const fnComment: ParserFunction = (s, pos = 0) => {
 // /^<!\[CDATA\[([^\0]*?)\]\]>/
 const fnCData: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.startsWith('<![CDATA[', pos)) {
-    const max = s.length - 3;
-    let i = pos + 9;
-    do {
-      if (s.startsWith(']]>', i)) {
-        return [ s.slice(pos, i + 3), s.slice(pos + 9, i) ];
-      }
-      i++;
+    const i = s.indexOf(']]>', pos + 9);
+    if (i !== -1) {
+      return [ s.slice(pos, i + 3), s.slice(pos + 9, i) ];
     }
-    while (i < max);
   }
   return null;
 };
@@ -107,15 +106,10 @@ const fnCData: ParserFunction = (s, pos = 0) => {
 // /^<\?([^>]*)\?>/
 const fnInstr: ParserFunction = (s, pos = 0) => {
   if (s.charCodeAt(pos) === OPEN_BRACE && s.charCodeAt(pos + 1) === QUESTION) {
-    const max = s.length - 2;
-    let i = pos + 2;
-    do {
-      if (s.startsWith('?>', i)) {
-        return [ s.slice(pos, i + 2), s.slice(pos + 2, i) ];
-      }
-      i++;
+    const i = s.indexOf('?>', pos + 2);
+    if (i !== -1) {
+      return [ s.slice(pos, i + 2), s.slice(pos + 2, i) ];
     }
-    while (i < max);
   }
   return null;
 };
@@ -238,6 +232,7 @@ function posToLine (pos: number, src: string): number {
  * @param [options={}] Parsing options.
  * @param [options.emptyDoc=false] Permit "rootless" documents.
  * @param [options.laxAttr=false] Permit unquoted attributes (`<node foo=bar />`).
+ * @param [options.ns=false] Validate xmlns and element namespaces as they are parsed.
  * @returns A DOM representing the XML node tree.
  */
 export function parseXML (
@@ -245,14 +240,17 @@ export function parseXML (
   options: {
     emptyDoc?: boolean;
     laxAttr?: boolean;
+    ns?: boolean;
   } = DEFAULTOPTIONS
 ): Document {
   // 2.11: before parsing, translate both the two-character sequence
   // \r\n and any \r that is not followed by \n to a single \n
   const xml = removeCR(source);
+  const doc = new Document();
 
   let pos = 0;
   let root = NON_ELEMENT;
+  let rootSelfClosing = false;
 
   function scanUntil (char: string, parse: ParseHandler): boolean {
     const s = pos;
@@ -290,6 +288,62 @@ export function parseXML (
     while (m);
   }
 
+  // Namespace scopes for the ns option: prefix -> URI ('' is the default
+  // namespace). An element with declarations gets a new scope that inherits
+  // from its parent's through the prototype chain.
+  type NSScope = Record<string, string>;
+  let nsScope: NSScope = Object.assign(Object.create(null) as NSScope, { xml: XML_NS, xmlns: XMLNS_NS });
+  const nsStack: NSScope[] = [];
+
+  // Reads the parsed attribute record rather than elm.attributes, which is slower.
+  function checkNS (elm: Element, attr: Record<string, string>): NSScope {
+    let scope = nsScope;
+    let prefixedAttr = false;
+    for (const name in attr) {
+      if (name === 'xmlns' || name.startsWith('xmlns:')) {
+        const prefix = name === 'xmlns' ? '' : name.slice(6);
+        const uri = attr[name];
+        if (
+          prefix === 'xmlns' ||
+          uri === XMLNS_NS ||
+          (prefix === 'xml') !== (uri === XML_NS) ||
+          (prefix && !uri)
+        ) {
+          throw new NamespaceError(`Invalid namespace declaration ${name}="${uri}"`);
+        }
+        if (scope === nsScope) {
+          scope = Object.create(nsScope) as NSScope;
+        }
+        scope[prefix] = uri;
+      }
+      else if (name.includes(':')) {
+        prefixedAttr = true;
+      }
+    }
+    if (elm.prefix === 'xmlns' || (elm.prefix && !(elm.prefix in scope))) {
+      throw new NamespaceError('Unknown namespace prefix ' + elm.prefix);
+    }
+    if (prefixedAttr) {
+      for (const name in attr) {
+        const colon = name.indexOf(':');
+        const prefix = colon > 0 ? name.slice(0, colon) : '';
+        if (prefix && prefix !== 'xmlns' && !(prefix in scope)) {
+          throw new NamespaceError('Unknown namespace prefix ' + prefix);
+        }
+      }
+    }
+    return scope;
+  }
+
+  // Check an element's namespaces, and enter its scope if it has content.
+  function enterNS (elm: Element, attr: Record<string, string>, selfClosing: boolean) {
+    const scope = checkNS(elm, attr);
+    if (!selfClosing) {
+      nsStack.push(nsScope);
+      nsScope = scope;
+    }
+  }
+
   // BOM
   if (xml.charCodeAt(pos) === 65279) {
     pos++;
@@ -303,7 +357,7 @@ export function parseXML (
     // MUST: have version
     const attr = parseAttr(a, options.laxAttr);
     if (!attr.version) {
-      throw new Error('XML missing version');
+      throw new ParserError('XML missing version');
     }
     return false;
   });
@@ -315,18 +369,21 @@ export function parseXML (
 
   // root tag
   maybeMatchFn(fnTag, (_, t, a, c) => {
-    root = new Element(t, parseAttr(a, options.laxAttr), !!c);
+    const attr = parseAttr(a, options.laxAttr);
+    root = new Element(t, attr);
+    rootSelfClosing = !!c;
+    if (options.ns) enterNS(root, attr, rootSelfClosing);
     return true;
   });
 
   if (root === NON_ELEMENT && !options.emptyDoc) {
-    throw new Error('no root tag found');
+    throw new ParserError('no root tag found');
   }
 
   let current: Element | null = root;
 
   // root tag content
-  if (root !== NON_ELEMENT && !root.closed) {
+  if (root !== NON_ELEMENT && !rootSelfClosing) {
     let some = false;
     let lastPos = pos;
     do {
@@ -344,16 +401,21 @@ export function parseXML (
           // the thing being closed must be the parent
           if (t.trim() === current?.fullName) {
             current = current.parentNode;
+            if (options.ns) {
+              nsScope = nsStack.pop() ?? nsScope;
+            }
             return true;
           }
           const msg = `Expected </${current?.fullName}> got </${t}> in line ${posToLine(pos, xml)}`;
-          throw new Error(msg);
+          throw new ParserError(msg);
         })
         ||
         maybeMatchFn(fnTag, (_, t, a, c) => {
-          const elm = new Element(t, parseAttr(a, options.laxAttr), !!c);
+          const attr = parseAttr(a, options.laxAttr);
+          const elm = new Element(t, attr);
+          if (options.ns) enterNS(elm, attr, !!c);
           current?.appendChild(elm);
-          if (!elm.closed) {
+          if (!c) {
             current = elm;
           }
           return true;
@@ -365,7 +427,7 @@ export function parseXML (
         })
       );
       if (pos === lastPos) {
-        throw new Error('Parser error');
+        throw new ParserError('Parser error');
       }
     }
     while (some && current && pos < xml.length);
@@ -376,15 +438,14 @@ export function parseXML (
 
   // file should be done
   if (xml.slice(pos)) {
-    throw new Error('DATA outside root node');
+    throw new ParserError('DATA outside root node');
   }
 
   // root should have been closed
-  if (root !== NON_ELEMENT && !root.closed && current !== null) {
-    throw new Error(`Expected </${root.tagName}> got EOF`);
+  if (root !== NON_ELEMENT && !rootSelfClosing && current !== null) {
+    throw new ParserError(`Expected </${root.localName}> got EOF`);
   }
 
-  const doc = new Document();
   if (root !== NON_ELEMENT) {
     doc.appendChild(root);
   }

@@ -1,4 +1,5 @@
 import { unescape } from './unescape.js';
+import { ParserError } from './errors.js';
 
 function isWS (ch: string): boolean {
   return (
@@ -18,14 +19,6 @@ function isAttrChar (ch: string): boolean {
     ch === '=' ||
     ch === '&'
   );
-}
-
-function isQuoteSingle (ch: string): boolean {
-  return ch === "'";
-}
-
-function isQuoteDouble (ch: string): boolean {
-  return ch === '"';
 }
 
 function skipWS (s: string, i: number): number {
@@ -64,7 +57,7 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
       // start-tag or empty-element tag.
       // The replacement text of any entity referred to directly or
       // indirectly in an attribute value MUST NOT contain a <.
-      throw new Error('Attribute error: expected name');
+      throw new ParserError('Attribute error: expected name');
     }
 
     const nameEnd = i;
@@ -79,54 +72,53 @@ export function parseAttr (s: string, laxAttr = false): Record<string, string> {
         r[s.slice(nameStart, nameEnd)] = '';
         continue;
       }
-      throw new Error('Attribute error: expected =');
+      throw new ParserError('Attribute error: expected =');
     }
 
     i += skipWS(s, i);
 
     // match value
-    let fnSeek: (s: string) => boolean;
-    if (s[i] === '"') {
-      fnSeek = isQuoteDouble;
+    const quote = s[i] === '"' || s[i] === "'" ? s[i] : '';
+    if (quote) {
       i++;
     }
-    else if (s[i] === "'") {
-      fnSeek = isQuoteSingle;
-      i++;
-    }
-    else if (laxAttr) {
-      fnSeek = isWS;
-    }
-    else {
-      throw new Error('Attribute error: expected value');
+    else if (!laxAttr) {
+      throw new ParserError('Attribute error: expected value');
     }
 
     const startValue = i;
     let endValue = -1;
-    do {
-      if (fnSeek(s[i])) {
-        endValue = i;
+    if (quote) {
+      endValue = s.indexOf(quote, i);
+      i = endValue === -1 ? n : endValue + 1;
+    }
+    else {
+      // unquoted values (lax mode) end at whitespace
+      do {
+        if (isWS(s[i])) {
+          endValue = i;
+          i++;
+          break;
+        }
         i++;
-        break;
-      }
-      i++;
-    } while (i < n);
+      } while (i < n);
+    }
 
     if (endValue === -1) {
       if (laxAttr) {
         const key = s.slice(nameStart, nameEnd);
-        r[key] = unescape(s.slice(startValue, n));
+        r[key] = unescape(s.slice(startValue, n), true);
         break;
       }
-      throw new Error('Attribute error: unterminated value');
+      throw new ParserError('Attribute error: unterminated value');
     }
 
-    r[s.slice(nameStart, nameEnd)] = unescape(s.slice(startValue, endValue));
+    r[s.slice(nameStart, nameEnd)] = unescape(s.slice(startValue, endValue), true);
 
     const j = i;
     i += skipWS(s, i);
     if (i === j && i < n) {
-      throw new Error('Attribute error: expected space');
+      throw new ParserError('Attribute error: expected space');
     }
   }
   while (i < n);
