@@ -64,7 +64,7 @@ export class Element extends Node {
 
     const list: Attr[] = [];
     this[ATTRS] = list;
-    this.#attrs = new NamedNodeMapImpl(list);
+    this.#attrs = new NamedNodeMapImpl(list, this);
     this.setAttrValues(attr ?? null);
 
     // inherited instance props from Node
@@ -78,7 +78,7 @@ export class Element extends Node {
     // then copy the own properties, so a copy has the attribute array but no
     // private fields.
     if (!(#attrs in this)) {
-      return createNamedNodeMap(new NamedNodeMapImpl((this as Element)[ATTRS]));
+      return createNamedNodeMap(new NamedNodeMapImpl((this as Element)[ATTRS], this as Element));
     }
     return (this.#attrProxy ??= createNamedNodeMap(this.#attrs));
   }
@@ -221,6 +221,13 @@ export class Element extends Node {
    * @param value The value to set
    */
   setAttribute (name: string, value: string | number | boolean) {
+    // as in the DOM, an existing Attr is updated rather than replaced
+    for (const attr of this[ATTRS]) {
+      if (attr.fullName === name) {
+        attr.value = String(value);
+        return;
+      }
+    }
     this.#attrs.setNamedItem(new Attr(name, value));
   }
 

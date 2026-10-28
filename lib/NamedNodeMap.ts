@@ -1,5 +1,6 @@
-import type { Attr } from './Attr.ts';
-import { NotFoundError } from './errors.js';
+import { setOwnerElement, type Attr } from './Attr.ts';
+import type { Element } from './Element.ts';
+import { InUseAttributeError, NotFoundError } from './errors.js';
 
 /**
  * Runtime class for {@link NamedNodeMap}. Not exported from the package, so that
@@ -10,12 +11,15 @@ import { NotFoundError } from './errors.js';
  */
 export class NamedNodeMapImpl {
   #attr: Attr[];
+  #owner: Element | null;
 
   /**
    * @param [list] The array to keep the attributes in. The map changes it in place.
+   * @param [owner] The element the attributes belong to.
    */
-  constructor (list: Attr[] = []) {
+  constructor (list: Attr[] = [], owner: Element | null = null) {
     this.#attr = list;
+    this.#owner = owner;
   }
 
   // Test tools such as Vitest copy objects with Object.create(prototype) and
@@ -43,24 +47,34 @@ export class NamedNodeMapImpl {
 
   // Returns the old attribute if replaced, or null if the attribute is new.
   setNamedItem (attr: Attr) {
-    const fn = attr.fullName;
     const list = this.#attr;
+    const owner = this.#owner;
+    if (attr.ownerElement && attr.ownerElement !== owner) {
+      throw new InUseAttributeError(`The attribute '${attr.fullName}' belongs to another element.`);
+    }
+    const fn = attr.fullName;
     for (let i = 0; i < list.length; i++) {
       if (list[i].fullName === fn) {
         const old = list[i];
-        list[i] = attr;
+        if (old !== attr) {
+          list[i] = attr;
+          setOwnerElement(old, null);
+          setOwnerElement(attr, owner);
+        }
         return old;
       }
     }
     list.push(attr);
+    setOwnerElement(attr, owner);
     return null;
   }
 
   removeNamedItem (qualifiedName: string) {
     const existing = this.#attr.findIndex(d => d.fullName === qualifiedName);
     if (existing > -1) {
-      const old = this.#attr.splice(existing, 1);
-      return old[0];
+      const old = this.#attr.splice(existing, 1)[0];
+      setOwnerElement(old, null);
+      return old;
     }
     throw new NotFoundError(`No attribute with name '${qualifiedName}' was found.`);
   }

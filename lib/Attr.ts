@@ -1,6 +1,14 @@
 import { Node } from './Node.js';
-import { ATTRIBUTE_NODE } from './constants.js';
+import { ATTRIBUTE_NODE, XML_NS, XMLNS_NS } from './constants.js';
 import { splitTagName } from './splitTagName.ts';
+import type { Element } from './Element.ts';
+
+/**
+ * Set the element an attribute belongs to. Only attribute maps call this.
+ *
+ * @internal
+ */
+export let setOwnerElement: (attr: Attr, owner: Element | null) => void;
 
 /**
  * A class describing an attribute.
@@ -17,6 +25,15 @@ export class Attr extends Node {
   name: string;
   /** The attribute's data value. */
   value: string;
+
+  // Private so it stays out of equality checks, logs, and JSON output.
+  #ownerElement: Element | null = null;
+
+  static {
+    setOwnerElement = (attr, owner) => {
+      attr.#ownerElement = owner;
+    };
+  }
 
   /**
    * Constructs a new Attr instance.
@@ -43,5 +60,31 @@ export class Attr extends Node {
     return this.prefix
       ? this.prefix + ':' + this.localName
       : this.localName;
+  }
+
+  /** The element the attribute belongs to, or null if it isn't on an element. */
+  get ownerElement (): Element | null {
+    // a copy made by a test tool has no private fields
+    return #ownerElement in this ? this.#ownerElement : null;
+  }
+
+  /**
+   * The namespace URI of the attribute, or null if it has none. Unprefixed
+   * attributes have no namespace, even when the element has a default
+   * namespace. Other prefixes are resolved from the `xmlns` declarations on
+   * the owner element and its ancestors.
+   */
+  get namespaceURI (): string | null {
+    const prefix = this.prefix;
+    if (prefix === 'xmlns' || (!prefix && this.localName === 'xmlns')) {
+      return XMLNS_NS;
+    }
+    if (!prefix) {
+      return null;
+    }
+    if (prefix === 'xml') {
+      return XML_NS;
+    }
+    return this.ownerElement?.lookupNamespaceURI(prefix) ?? null;
   }
 }

@@ -55,3 +55,14 @@ export class NotFoundError extends XMLError {
     this.name = 'NotFoundError';
   }
 }
+
+/**
+ * Thrown when an attribute that belongs to one element is added to another.
+ * Remove it from its element first, or create a new attribute.
+ */
+export class InUseAttributeError extends XMLError {
+  constructor (message: string) {
+    super(message);
+    this.name = 'InUseAttributeError';
+  }
+}
