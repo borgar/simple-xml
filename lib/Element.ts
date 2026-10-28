@@ -15,6 +15,8 @@ import { createNamedNodeMap, NamedNodeMapImpl, type NamedNodeMap } from './Named
 import { ATTRS } from './attrList.ts';
 import { Attr } from './Attr.ts';
 import { qnameColon } from './splitQName.ts';
+import { checkNamespace } from './checkNamespace.ts';
+import { NamespaceError } from './errors.ts';
 
 // The element, then each of its ancestor elements.
 function* selfAndAncestors (el: Element): Generator<Element> {
@@ -348,6 +350,86 @@ export class Element extends Node {
     const elm = new Element(qualifiedName);
     elm.prefix ??= this.prefix;
     elm.setAttrValues(attr ?? null);
+    this.appendChild(elm);
+    for (const child of children) {
+      elm.append(child);
+    }
+    return elm;
+  }
+
+  /**
+   * Create an element in a namespace and insert it as the last child of this
+   * element. Unlike `createChild`, the new element doesn't take this element's
+   * prefix, and missing namespace declarations are added to it.
+   *
+   * - With no namespace, the new element is unprefixed. If a default
+   *   namespace is in scope, `xmlns=""` is added to it.
+   * - With a namespace and an unprefixed name, the default namespace or a
+   *   prefix in scope is used. If the namespace isn't declared, this throws.
+   * - With a namespace and a prefixed name, the name is used as given. If the
+   *   prefix isn't declared, `xmlns:prefix` is added to the new element. If
+   *   it's bound to another namespace, this throws.
+   *
+   * Namespace declarations in `attr` count as being in scope, but this throws
+   * if they contradict the namespace.
+   *
+   * @param namespaceURI The namespace of the new element, or null or an empty
+   *                     string for no namespace.
+   * @param qualifiedName The tagName of the element, with or without a prefix.
+   * @param [attr] A record of attributes to assign to the new element.
+   *               If the value is null or undefined, the attribute will be omitted.
+   * @param children Nodes to insert as children.
+   *                 Strings will be converted to TextNodes and arrays will be flattened.
+   * @returns A new Element instance.
+   * @throws {NamespaceError} If the namespace can't be used with the name here.
+   * @throws {InvalidCharacterError} If the name is not a valid XML name.
+   * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
+   */
+  createChildNS (
+    namespaceURI: string | null,
+    qualifiedName: string,
+    attr?: XMLAttr | null,
+    ...children: (CreateChildArgument | CreateChildArgument[])[]
+  ): Element {
+    // as in the DOM, an empty string means no namespace
+    const uri = namespaceURI || null;
+    const elm = new Element(qualifiedName);
+    checkNamespace(uri, elm.prefix, qualifiedName);
+    elm.setAttrValues(attr ?? null);
+
+    // what a prefix means on the new element: its own declarations come first
+    const resolve = (prefix: string | null): string | null => {
+      const declaration = prefix ? 'xmlns:' + prefix : 'xmlns';
+      return elm.hasAttribute(declaration)
+        ? elm.getAttribute(declaration) || null
+        : this.lookupNamespaceURI(prefix);
+    };
+
+    let prefix = elm.prefix;
+    if (uri && !prefix && resolve(null) !== uri) {
+      // find a prefix for the namespace, on the new element or in scope here
+      const own = [ ...elm.attributes ].find(a => a.prefix === 'xmlns' && a.value === uri)?.localName;
+      prefix = own ?? this.lookupPrefix(uri);
+      if (!prefix || resolve(prefix) !== uri) {
+        throw new NamespaceError('Unknown namespace ' + uri);
+      }
+      elm.prefix = prefix;
+    }
+
+    const current = resolve(prefix);
+    if (current !== uri) {
+      const declaration = prefix ? 'xmlns:' + prefix : 'xmlns';
+      // a declaration on the new element, or a prefix bound to another
+      // namespace, can't be changed without changing what it means
+      if (elm.hasAttribute(declaration) || (prefix && current)) {
+        throw new NamespaceError(`${declaration} is ${current ?? 'not set'} here, not ${uri ?? 'null'}`);
+      }
+      elm.setAttribute(declaration, uri ?? '');
+      // put the added declaration before the attributes from attr
+      const list = elm[ATTRS];
+      list.unshift(list.pop()!);
+    }
+
     this.appendChild(elm);
     for (const child of children) {
       elm.append(child);

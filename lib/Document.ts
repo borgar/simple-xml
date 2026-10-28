@@ -2,8 +2,9 @@ import { JsonML, type JsonMLElement } from './JsonML.js';
 import { Node } from './Node.js';
 import { Element } from './Element.js';
 import { appendChild } from './appendChild.js';
-import { DOCUMENT_NODE, XML_DECLARATION, XML_NS, XMLNS_NS } from './constants.js';
+import { DOCUMENT_NODE, XML_DECLARATION } from './constants.js';
 import { splitQName } from './splitQName.ts';
+import { checkNamespace } from './checkNamespace.ts';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
 import { isElement } from './isElement.ts';
@@ -151,8 +152,11 @@ export class Document extends Node {
    * If the name has a prefix, it is used as given, and the caller is
    * responsible for declaring it. Otherwise, the prefix comes from a namespace
    * attached with `attachNS`, or from the declarations on the root element.
+   * With no namespace, the element has no prefix. To create an element in
+   * place, with any missing declarations added, use `Element.createChildNS`.
    *
-   * @param namespaceURI The namespaceURI to associate with the element.
+   * @param namespaceURI The namespaceURI to associate with the element, or
+   *                     null or an empty string for no namespace.
    * @param qualifiedName The tagName of the element, with or without a prefix.
    * @param [attr] A record of attributes to assign to the new element.
    *               If the value is null or undefined, the attribute will be omitted.
@@ -164,21 +168,16 @@ export class Document extends Node {
    * @throws {TypeError} If attr is not an object, or looks like a child (an array or a node).
    */
   createElementNS = (
-    namespaceURI: string,
+    namespaceURI: string | null,
     qualifiedName: string,
     attr?: XMLAttr | null,
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
+    // as in the DOM, an empty string means no namespace
+    const uri = namespaceURI || null;
     const [ prefix, localName ] = splitQName(qualifiedName);
-    // the same rules as DOM's createElementNS
-    if (
-      (prefix && !namespaceURI) ||
-      (prefix === 'xml' && namespaceURI !== XML_NS) ||
-      ((prefix === 'xmlns' || qualifiedName === 'xmlns') !== (namespaceURI === XMLNS_NS))
-    ) {
-      throw new NamespaceError(`Invalid name ${qualifiedName} for namespace ${namespaceURI}`);
-    }
-    const ns = prefix ?? this.#prefixFor(namespaceURI);
+    checkNamespace(uri, prefix, qualifiedName);
+    const ns = prefix ?? (uri ? this.#prefixFor(uri) : '');
     const element = new Element(ns ? ns + ':' + localName : localName);
     element.setAttrValues(attr ?? null);
     for (const child of children) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Attr, CDataNode, Document, Element, NamespaceError, TextNode, parseXML } from '../lib/index.ts';
+import { Attr, CDataNode, Document, Element, InvalidCharacterError, NamespaceError, TextNode, parseXML, simplePrint } from '../lib/index.ts';
 
 const ooxml = `
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -218,6 +218,155 @@ describe('Document.createElementNS', () => {
   it('keeps its namespace registry private', () => {
     const doc = new Document();
     expect('namespaces' in doc).toBe(false);
+  });
+});
+
+describe('Element.createChildNS', () => {
+  // <r xmlns="urn:d" xmlns:p="urn:p">
+  const parent = () => root('<r xmlns="urn:d" xmlns:p="urn:p"/>');
+  const attrs = (el: Element) => Object.fromEntries([ ...el.attributes ].map(d => [ d.name, d.value ]));
+
+  describe('with no namespace (null or "")', () => {
+    it('creates an unprefixed child and adds nothing without a default namespace', () => {
+      for (const uri of [ null, '' ]) {
+        const el = root('<r xmlns:p="urn:p"/>').createChildNS(uri, 'c');
+        expect(el.fullName).toBe('c');
+        expect(attrs(el)).toEqual({});
+        expect(el.namespaceURI).toBeNull();
+      }
+    });
+
+    it('adds xmlns="" when a default namespace is in scope', () => {
+      for (const uri of [ null, '' ]) {
+        const el = parent().createChildNS(uri, 'c');
+        expect(el.fullName).toBe('c');
+        expect(attrs(el)).toEqual({ xmlns: '' });
+        expect(el.namespaceURI).toBeNull();
+      }
+    });
+
+    it('throws for a prefixed name', () => {
+      const r = parent();
+      expect(() => r.createChildNS(null, 'p:c')).toThrow(NamespaceError);
+      expect(() => r.createChildNS('', 'p:c')).toThrow(NamespaceError);
+      expect(r.childNodes).toEqual([]);
+    });
+  });
+
+  describe('with a namespace and an unprefixed name', () => {
+    it('uses no prefix for the default namespace', () => {
+      const el = parent().createChildNS('urn:d', 'c');
+      expect(el.fullName).toBe('c');
+      expect(attrs(el)).toEqual({});
+      expect(el.namespaceURI).toBe('urn:d');
+    });
+
+    it('uses the prefix in scope', () => {
+      const el = parent().createChildNS('urn:p', 'c');
+      expect(el.fullName).toBe('p:c');
+      expect(attrs(el)).toEqual({});
+      expect(el.namespaceURI).toBe('urn:p');
+    });
+
+    it('resolves from ancestors, not just the parent', () => {
+      const r = parent();
+      const el = r.createChild('mid').createChildNS('urn:p', 'c');
+      expect(el.fullName).toBe('p:c');
+      expect(el.parentNode?.parentNode).toBe(r);
+    });
+
+    it('throws for a namespace that is not declared, without appending anything', () => {
+      const r = parent();
+      expect(() => r.createChildNS('urn:x', 'c')).toThrow(NamespaceError);
+      expect(r.childNodes).toEqual([]);
+    });
+  });
+
+  describe('with a namespace and a prefixed name', () => {
+    it('uses the name as given when the prefix is bound to the namespace', () => {
+      const el = parent().createChildNS('urn:p', 'p:c');
+      expect(el.fullName).toBe('p:c');
+      expect(attrs(el)).toEqual({});
+    });
+
+    it('declares a prefix that is not in scope on the new element', () => {
+      const el = parent().createChildNS('urn:x', 'x:c');
+      expect(el.fullName).toBe('x:c');
+      expect(attrs(el)).toEqual({ 'xmlns:x': 'urn:x' });
+      expect(el.namespaceURI).toBe('urn:x');
+    });
+
+    it('does not declare it again further down', () => {
+      const el = parent().createChildNS('urn:x', 'x:c').createChildNS('urn:x', 'x:d');
+      expect(attrs(el)).toEqual({});
+      expect(el.namespaceURI).toBe('urn:x');
+    });
+
+    it('throws when the prefix is bound to another namespace, without appending anything', () => {
+      const r = parent();
+      expect(() => r.createChildNS('urn:x', 'p:c')).toThrow(NamespaceError);
+      expect(r.childNodes).toEqual([]);
+    });
+
+    it('uses the xml prefix without declaring it', () => {
+      const el = parent().createChildNS(XML_NS, 'xml:c');
+      expect(attrs(el)).toEqual({});
+    });
+  });
+
+  describe('with declarations in the attributes', () => {
+    it('uses them before the parent scope', () => {
+      const r = parent();
+      expect(attrs(r.createChildNS('urn:x', 'x:c', { 'xmlns:x': 'urn:x' }))).toEqual({ 'xmlns:x': 'urn:x' });
+      expect(r.createChildNS('urn:y', 'c', { xmlns: 'urn:y' }).fullName).toBe('c');
+      expect(r.createChildNS('urn:z', 'c', { 'xmlns:z': 'urn:z' }).fullName).toBe('z:c');
+      expect(attrs(r.createChildNS(null, 'c', { xmlns: '' }))).toEqual({ xmlns: '' });
+    });
+
+    it('throws when they contradict the namespace, without appending anything', () => {
+      const r = parent();
+      expect(() => r.createChildNS('urn:x', 'x:c', { 'xmlns:x': 'urn:other' })).toThrow(NamespaceError);
+      expect(() => r.createChildNS(null, 'c', { xmlns: 'urn:y' })).toThrow(NamespaceError);
+      expect(() => r.createChildNS('urn:p', 'c', { 'xmlns:p': 'urn:other' })).toThrow(NamespaceError);
+      expect(r.childNodes).toEqual([]);
+    });
+  });
+
+  it('applies the reserved prefix rules and name checks', () => {
+    const r = parent();
+    expect(() => r.createChildNS('urn:x', 'xml:c')).toThrow(NamespaceError);
+    expect(() => r.createChildNS('urn:x', 'xmlns:c')).toThrow(NamespaceError);
+    expect(() => r.createChildNS('urn:x', 'a b')).toThrow(InvalidCharacterError);
+    expect(r.childNodes).toEqual([]);
+  });
+
+  it('appends attributes and children, and returns the new element', () => {
+    const r = parent();
+    const el = r.createChildNS('urn:p', 'c', { a: '1' }, 'text', new Element('d'));
+    expect(r.childNodes).toEqual([ el ]);
+    expect(el.getAttribute('a')).toBe('1');
+    expect(el.childNodes).toHaveLength(2);
+    expect(simplePrint(el)).toBe('<p:c a="1">text<d /></p:c>');
+  });
+
+  it('ports the extLst example without an explicit declaration', () => {
+    const NS_X15_ = 'http://schemas.microsoft.com/office/spreadsheetml/2010/11/main';
+    const doc = parseXML('<workbook xmlns="' + NS_MAIN + '"/>');
+    doc.root!
+      .createChild('extLst')
+      .createChild('ext', { uri: '{140A7094-0E35-4892-8432-C4D2E57EDEB5}' })
+      .createChildNS(NS_X15_, 'x15:workbookPr', { chartTrackingRefBase: '1' });
+    expect(simplePrint(doc.root!.querySelector('workbookPr')!))
+      .toBe('<x15:workbookPr xmlns:x15="' + NS_X15_ + '" chartTrackingRefBase="1" />');
+  });
+});
+
+describe('Document.createElementNS with no namespace', () => {
+  it('treats null and "" alike and creates an unprefixed element', () => {
+    const doc = parseXML('<r xmlns="urn:d"/>');
+    expect(doc.createElementNS(null, 'c').fullName).toBe('c');
+    expect(doc.createElementNS('', 'c').fullName).toBe('c');
+    expect(() => doc.createElementNS(null, 'p:c')).toThrow(NamespaceError);
   });
 });
 
