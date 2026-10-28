@@ -160,16 +160,6 @@ export class Element extends Node {
     return null;
   }
 
-  /**
-   * Test if a namespace URI is the default namespace of the element.
-   *
-   * @param namespaceURI The namespace URI to test, or null for no namespace.
-   * @returns True if unprefixed elements here belong to the namespace.
-   */
-  isDefaultNamespace (namespaceURI: string | null): boolean {
-    return this.lookupNamespaceURI(null) === (namespaceURI || null);
-  }
-
   hasAttributes () {
     return !!this.attributes.length;
   }

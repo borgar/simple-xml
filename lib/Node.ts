@@ -3,6 +3,8 @@ import { checkHierarchy } from './checkHierarchy.ts';
 import { DocumentFragment } from './DocumentFragment.ts';
 import { NotFoundError } from './errors.js';
 import { prettyPrint } from './prettyPrint.js';
+import { isElement } from './isElement.ts';
+import type { Element } from './Element.ts';
 
 /**
  * A class describing a Node.
@@ -107,6 +109,49 @@ export class Node {
       node.parentNode = null;
     }
     return node;
+  }
+
+  /**
+   * Find the namespace URI that a prefix is bound to. As in the DOM, elements
+   * resolve it from their own `xmlns` declarations and their ancestors', and
+   * other nodes ask an element: a document its root, an attribute its owner
+   * element, and anything else its parent element.
+   *
+   * @param prefix The prefix to look up, or null for the default namespace.
+   * @returns The namespace URI, or null if the prefix is not bound.
+   */
+  lookupNamespaceURI (prefix: string | null): string | null {
+    return this._namespaceElement()?.lookupNamespaceURI(prefix) ?? null;
+  }
+
+  /**
+   * Find a prefix that is bound to a namespace URI. Nodes other than elements
+   * ask an element, as `lookupNamespaceURI` does.
+   *
+   * @param namespaceURI The namespace URI to look up.
+   * @returns The prefix, or null if no prefix is bound to the namespace.
+   */
+  lookupPrefix (namespaceURI: string | null): string | null {
+    return this._namespaceElement()?.lookupPrefix(namespaceURI) ?? null;
+  }
+
+  /**
+   * Test if a namespace URI is the default namespace at this node.
+   *
+   * @param namespaceURI The namespace URI to test, or null for no namespace.
+   * @returns True if unprefixed elements here belong to the namespace.
+   */
+  isDefaultNamespace (namespaceURI: string | null): boolean {
+    return this.lookupNamespaceURI(null) === (namespaceURI || null);
+  }
+
+  /**
+   * The element that namespace lookups on this node are delegated to.
+   *
+   * @internal
+   */
+  protected _namespaceElement (): Element | null {
+    return isElement(this.parentNode) ? this.parentNode : null;
   }
 
   /**

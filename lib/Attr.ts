@@ -68,6 +68,11 @@ export class Attr extends Node {
     return #ownerElement in this ? this.#ownerElement : null;
   }
 
+  /** @internal Namespace lookups go to the owner element. */
+  protected _namespaceElement (): Element | null {
+    return this.ownerElement;
+  }
+
   /**
    * The namespace URI of the attribute, or null if it has none. Unprefixed
    * attributes have no namespace, even when the element has a default

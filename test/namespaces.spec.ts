@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Document, Element, NamespaceError, parseXML } from '../lib/index.ts';
+import { Attr, CDataNode, Document, Element, NamespaceError, TextNode, parseXML } from '../lib/index.ts';
 
 const ooxml = `
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -120,6 +120,56 @@ describe('Element namespace lookup', () => {
     expect(el.namespaceURI).toBe('urn:one');
     b.appendChild(el);
     expect(el.namespaceURI).toBe('urn:two');
+  });
+});
+
+describe('Node namespace lookup', () => {
+  const src = '<r xmlns="urn:default" xmlns:p="urn:p" p:x="1">text<![CDATA[data]]></r>';
+
+  it('resolves text and CDATA nodes through their parent element', () => {
+    const r = root(src);
+    for (const node of r.childNodes) {
+      expect(node.lookupNamespaceURI('p')).toBe('urn:p');
+      expect(node.lookupNamespaceURI(null)).toBe('urn:default');
+      expect(node.lookupPrefix('urn:p')).toBe('p');
+      expect(node.isDefaultNamespace('urn:default')).toBe(true);
+      expect(node.lookupNamespaceURI('xml')).toBe(XML_NS);
+    }
+  });
+
+  it('resolves a document through its root element', () => {
+    const doc = parseXML(src);
+    expect(doc.lookupNamespaceURI('p')).toBe('urn:p');
+    expect(doc.lookupPrefix('urn:p')).toBe('p');
+    expect(doc.isDefaultNamespace('urn:default')).toBe(true);
+  });
+
+  it('resolves an attribute through its owner element', () => {
+    const attr = root(src).attributes.getNamedItem('p:x')!;
+    expect(attr.lookupNamespaceURI('p')).toBe('urn:p');
+    expect(attr.lookupPrefix('urn:p')).toBe('p');
+    expect(attr.isDefaultNamespace('urn:default')).toBe(true);
+  });
+
+  it('returns null for detached nodes and an empty document, even for xml', () => {
+    const detached = [ new TextNode('x'), new CDataNode('x'), new Attr('p:x', '1'), new Document() ];
+    for (const node of detached) {
+      expect(node.lookupNamespaceURI('xml')).toBeNull();
+      expect(node.lookupNamespaceURI(null)).toBeNull();
+      expect(node.lookupPrefix(XML_NS)).toBeNull();
+      expect(node.isDefaultNamespace(null)).toBe(true);
+      expect(node.isDefaultNamespace('urn:a')).toBe(false);
+    }
+  });
+
+  it('follows a text node when it moves', () => {
+    const a = root('<a xmlns:p="urn:one"/>');
+    const b = root('<b xmlns:p="urn:two"/>');
+    const text = new TextNode('x');
+    a.appendChild(text);
+    expect(text.lookupNamespaceURI('p')).toBe('urn:one');
+    b.appendChild(text);
+    expect(text.lookupNamespaceURI('p')).toBe('urn:two');
   });
 });
 

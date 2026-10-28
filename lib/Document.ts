@@ -104,6 +104,11 @@ export class Document extends Node {
     }
   }
 
+  /** @internal Namespace lookups go to the root element. */
+  protected _namespaceElement (): Element | null {
+    return this.root;
+  }
+
   // overwrites super
   get textContent () {
     return this.root ? this.root.textContent : '';
