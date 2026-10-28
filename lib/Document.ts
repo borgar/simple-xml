@@ -3,7 +3,7 @@ import { Node } from './Node.js';
 import { Element } from './Element.js';
 import { appendChild } from './appendChild.js';
 import { DOCUMENT_NODE, XML_DECLARATION, XML_NS, XMLNS_NS } from './constants.js';
-import { splitTagName } from './splitTagName.ts';
+import { splitQName } from './splitQName.ts';
 import { domQuery } from './domQuery/index.js';
 import { findAll } from './findAll.js';
 import { isElement } from './isElement.ts';
@@ -169,7 +169,7 @@ export class Document extends Node {
     attr?: XMLAttr | null,
     ...children: (CreateChildArgument | CreateChildArgument[])[]
   ): Element => {
-    const [ prefix, localName ] = splitTagName(qualifiedName);
+    const [ prefix, localName ] = splitQName(qualifiedName);
     // the same rules as DOM's createElementNS
     if (
       (prefix && !namespaceURI) ||

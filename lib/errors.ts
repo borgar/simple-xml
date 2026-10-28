@@ -66,3 +66,13 @@ export class InUseAttributeError extends XMLError {
     this.name = 'InUseAttributeError';
   }
 }
+
+/**
+ * Thrown when an element or attribute name is not a valid XML name.
+ */
+export class InvalidCharacterError extends XMLError {
+  constructor (message: string) {
+    super(message);
+    this.name = 'InvalidCharacterError';
+  }
+}

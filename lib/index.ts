@@ -16,7 +16,8 @@ export {
   NamespaceError,
   HierarchyError,
   NotFoundError,
-  InUseAttributeError
+  InUseAttributeError,
+  InvalidCharacterError
 } from './errors.ts';
 export type { CreateChildArgument } from './CreateChildArgument.js';
 export type { XMLAttr } from './XMLAttr.js';

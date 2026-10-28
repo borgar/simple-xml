@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseXML } from '../lib/index.js';
+import { InvalidCharacterError, parseXML } from '../lib/index.js';
 
 const emptyOk = { emptyDoc: true };
 const laxAttr = { laxAttr: true };
@@ -108,6 +108,20 @@ describe('parse-simple', () => {
     expect(() => parseXML('<a><b></a>')).toThrow();
     expect(() => parseXML('foo<a x=1/>')).toThrow();
     expect(() => parseXML('<a x=1/>foo')).toThrow();
+  });
+
+  it('element and attribute names', () => {
+    expect(parseXML('<a.b-c_d e.f="1"/>').toJS()).toEqual([ 'a.b-c_d', { 'e.f': '1' } ]);
+    expect(parseXML('<\u00E9l\u00E9ment \u00E0="1"/>').toJS()).toEqual([ '\u00E9l\u00E9ment', { '\u00E0': '1' } ]);
+    expect(parseXML('<p:a xml:lang="en"/>').toJS()).toEqual([ 'p:a', { 'xml:lang': 'en' } ]);
+
+    expect(() => parseXML('<1a/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<-a/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a:b:c/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a><1b/></a>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a 1b="1"/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a b:="1"/>')).toThrow(InvalidCharacterError);
+    expect(() => parseXML('<a 1b=1/>', laxAttr)).toThrow(InvalidCharacterError);
   });
 
   it('processing instructions', () => {

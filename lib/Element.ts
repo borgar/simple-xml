@@ -14,7 +14,7 @@ import type { XMLAttr } from './XMLAttr.ts';
 import { createNamedNodeMap, NamedNodeMapImpl, type NamedNodeMap } from './NamedNodeMap.ts';
 import { ATTRS } from './attrList.ts';
 import { Attr } from './Attr.ts';
-import { splitTagName } from './splitTagName.ts';
+import { qnameColon } from './splitQName.ts';
 
 // The element, then each of its ancestor elements.
 function* selfAndAncestors (el: Element): Generator<Element> {
@@ -56,9 +56,9 @@ export class Element extends Node {
   constructor (tagName: string, attr?: XMLAttr | null, closed: boolean = false) {
     super();
 
-    const [ prefix, localName ] = splitTagName(tagName);
-    this.prefix = prefix;
-    this.localName = localName;
+    const colon = qnameColon(tagName);
+    this.prefix = colon === -1 ? null : tagName.slice(0, colon);
+    this.localName = colon === -1 ? tagName : tagName.slice(colon + 1);
 
     this.closed = !!closed;
 

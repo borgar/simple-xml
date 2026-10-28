@@ -1,6 +1,6 @@
 import { Node } from './Node.js';
 import { ATTRIBUTE_NODE, XML_NS, XMLNS_NS } from './constants.js';
-import { splitTagName } from './splitTagName.ts';
+import { qnameColon } from './splitQName.ts';
 import type { Element } from './Element.ts';
 
 /**
@@ -44,9 +44,9 @@ export class Attr extends Node {
   constructor (name: string, value: any) {
     super();
 
-    const [ prefix, localName ] = splitTagName(name);
-    this.prefix = prefix;
-    this.localName = localName;
+    const colon = qnameColon(name);
+    this.prefix = colon === -1 ? null : name.slice(0, colon);
+    this.localName = colon === -1 ? name : name.slice(colon + 1);
     this.name = this.fullName;
     this.nodeName = this.fullName;
 

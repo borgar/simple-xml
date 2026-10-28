@@ -16,7 +16,8 @@ const DEFAULTOPTIONS = {
   ns: false
 };
 
-const NON_ELEMENT = new Element('#');
+// a placeholder for a missing root, compared by identity
+const NON_ELEMENT = new Element('none');
 
 function isWS (ch: string): boolean {
   return (
