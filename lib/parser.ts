@@ -126,6 +126,7 @@ const fnTag: ParserFunction = (s, startIndex = 0) => {
 
   // group 1: tag name (one or more of [^!>\s/#&])
   const nameStart = i;
+  // eslint-disable-next-line no-useless-assignment -- linter is simply wrong
   let nameEnd = i;
   if (i >= n || isNotNameChar(s[i])) {
     return null;
@@ -384,7 +385,9 @@ export function parseXML (
 
   // root tag content
   if (root !== NON_ELEMENT && !rootSelfClosing) {
+    // eslint-disable-next-line no-useless-assignment
     let some = false;
+    // eslint-disable-next-line no-useless-assignment
     let lastPos = pos;
     do {
       lastPos = pos;

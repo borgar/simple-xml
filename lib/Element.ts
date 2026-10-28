@@ -75,7 +75,7 @@ export class Element extends Node {
     // then copy the own properties, so a copy has the attribute array but no
     // private fields.
     if (!(#attrs in this)) {
-      return createNamedNodeMap(new NamedNodeMapImpl((this as Element)[ATTRS], this as Element));
+      return createNamedNodeMap(new NamedNodeMapImpl(this[ATTRS], this));
     }
     return (this.#attrProxy ??= createNamedNodeMap(this.#attrs));
   }

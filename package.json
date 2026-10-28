@@ -1,6 +1,6 @@
 {
   "name": "@borgar/simple-xml",
-  "version": "3.0.0-rc.2",
+  "version": "3.0.0",
   "description": "A reasonably fast, simple and pure-JS XML parser with no dependencies",
   "type": "module",
   "source": "lib/index.ts",
@@ -50,17 +50,18 @@
   "author": "Borgar Þorsteinsson <borgar@borgar.net> (http://borgar.net/)",
   "license": "MIT",
   "devDependencies": {
-    "@borgar/eslint-config": "~4.0.1",
-    "@eslint/js": "~9.38.0",
-    "@types/node": "~25.5.0",
+    "@borgar/eslint-config": "~4.1.0",
+    "@eslint/js": "~10.0.1",
+    "@types/node": "~26.6.5",
+    "@vitest/utils": "~5.0.5",
     "concat-md": "~0.5.1",
-    "eslint": "~9.38.0",
-    "jsdoc": "~4.0.5",
-    "tsdown": "~0.23.2",
-    "typedoc": "~0.28.17",
-    "typedoc-plugin-markdown": "~4.10.0",
+    "eslint": "~10.13.0",
+    "globals": "~17.13.0",
+    "tsdown": "~0.23.3",
+    "typedoc": "~0.28.20",
+    "typedoc-plugin-markdown": "~4.14.1",
     "typescript": "~5.9.3",
-    "typescript-eslint": "~8.55.0",
-    "vitest": "~4.0.18"
+    "typescript-eslint": "~8.72.1",
+    "vitest": "~5.0.5"
   }
 }
