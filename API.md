@@ -11,6 +11,8 @@
 - [DocumentFragment](#classesdocumentfragmentmd)
 - [Element](#classeselementmd)
 - [HierarchyError](#classeshierarchyerrormd)
+- [InUseAttributeError](#classesinuseattributeerrormd)
+- [InvalidCharacterError](#classesinvalidcharactererrormd)
 - [NamespaceError](#classesnamespaceerrormd)
 - [Node](#classesnodemd)
 - [NotFoundError](#classesnotfounderrormd)
@@ -117,7 +119,7 @@ Returns the node's first child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
+[`CDataNode`](#classescdatanodemd).[`firstChild`](#firstchild)
 
 ***
 
@@ -153,7 +155,42 @@ Returns the node's last child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
+[`CDataNode`](#classescdatanodemd).[`lastChild`](#lastchild)
+
+***
+
+### namespaceURI
+
+#### Get Signature
+
+```ts
+get namespaceURI(): string | null;
+```
+
+The namespace URI of the attribute, or null if it has none. Unprefixed
+attributes have no namespace, even when the element has a default
+namespace. Other prefixes are resolved from the `xmlns` declarations on
+the owner element and its ancestors.
+
+##### Returns
+
+`string` \| `null`
+
+***
+
+### ownerElement
+
+#### Get Signature
+
+```ts
+get ownerElement(): Element | null;
+```
+
+The element the attribute belongs to, or null if it isn't on an element.
+
+##### Returns
+
+[`Element`](#classeselementmd) \| `null`
 
 ***
 
@@ -200,7 +237,7 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild<T>(node: T): T;
+appendChild<T extends Node | DocumentFragment>(this: Node, node: T): T;
 ```
 
 Appends a child node into the current one.
@@ -209,12 +246,13 @@ Appends a child node into the current one.
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
+| `this` | [`Node`](#classesnodemd) | - |
 | `node` | `T` | The new child node |
 
 #### Returns
@@ -232,7 +270,7 @@ The same node that was passed in.
 ### insertBefore()
 
 ```ts
-insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+insertBefore<T extends Node | DocumentFragment>(newNode: T, referenceNode: Node | null): T;
 ```
 
 Inserts a node before a _reference node_ as a child of a specified _parent node_.
@@ -241,7 +279,7 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t-1"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
@@ -254,11 +292,131 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 `T`
 
-The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+The node or DocumentFragment that was passed in.
+
+#### Throws
+
+If newNode is this node or one of its ancestors.
+
+#### Throws
+
+If referenceNode is not a child of this node.
 
 #### Inherited from
 
 [`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### isDefaultNamespace()
+
+```ts
+isDefaultNamespace(namespaceURI: string | null): boolean;
+```
+
+Test if a namespace URI is the default namespace at this node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to test, or null for no namespace. |
+
+#### Returns
+
+`boolean`
+
+True if unprefixed elements here belong to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isDefaultNamespace`](#isdefaultnamespace)
+
+***
+
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isEqualNode`](#isequalnode)
+
+***
+
+### lookupNamespaceURI()
+
+```ts
+lookupNamespaceURI(prefix: string | null): string | null;
+```
+
+Find the namespace URI that a prefix is bound to. As in the DOM, elements
+resolve it from their own `xmlns` declarations and their ancestors', and
+other nodes ask an element: a document its root, an attribute its owner
+element, and anything else its parent element.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prefix` | `string` \| `null` | The prefix to look up, or null for the default namespace. |
+
+#### Returns
+
+`string` \| `null`
+
+The namespace URI, or null if the prefix is not bound.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupNamespaceURI`](#lookupnamespaceuri)
+
+***
+
+### lookupPrefix()
+
+```ts
+lookupPrefix(namespaceURI: string | null): string | null;
+```
+
+Find a prefix that is bound to a namespace URI. Nodes other than elements
+ask an element, as `lookupNamespaceURI` does.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to look up. |
+
+#### Returns
+
+`string` \| `null`
+
+The prefix, or null if no prefix is bound to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupPrefix`](#lookupprefix)
 
 ***
 
@@ -348,256 +506,10 @@ Constructs a new CDataNode instance.
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
 | <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
 | <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
-| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Document`](#classesdocumentmd).[`parentNode`](#parentnode) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
 | <a id="value"></a> `value` | `string` | `undefined` | The nodes data value. | - |
 
 ## Accessors
-
-### firstChild
-
-#### Get Signature
-
-```ts
-get firstChild(): Node | null;
-```
-
-Returns the node's first child in the tree, or null if the node has no children.
-
-##### Returns
-
-[`Node`](#classesnodemd) \| `null`
-
-#### Inherited from
-
-[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
-
-***
-
-### lastChild
-
-#### Get Signature
-
-```ts
-get lastChild(): Node | null;
-```
-
-Returns the node's last child in the tree, or null if the node has no children.
-
-##### Returns
-
-[`Node`](#classesnodemd) \| `null`
-
-#### Inherited from
-
-[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
-
-***
-
-### preserveSpace
-
-#### Get Signature
-
-```ts
-get preserveSpace(): boolean;
-```
-
-True if xml:space has been set to true for this node or any of its ancestors.
-
-##### Returns
-
-`boolean`
-
-#### Inherited from
-
-[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
-
-***
-
-### textContent
-
-#### Get Signature
-
-```ts
-get textContent(): string;
-```
-
-The text content of this node (and its children).
-
-##### Returns
-
-`string`
-
-#### Overrides
-
-[`Node`](#classesnodemd).[`textContent`](#textcontent)
-
-## Methods
-
-### appendChild()
-
-```ts
-appendChild<T>(node: T): T;
-```
-
-Appends a child node into the current one.
-
-#### Type Parameters
-
-| Type Parameter |
-| ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `node` | `T` | The new child node |
-
-#### Returns
-
-`T`
-
-The same node that was passed in.
-
-#### Inherited from
-
-[`Node`](#classesnodemd).[`appendChild`](#appendchild)
-
-***
-
-### insertBefore()
-
-```ts
-insertBefore<T>(newNode: T, referenceNode: Node | null): T;
-```
-
-Inserts a node before a _reference node_ as a child of a specified _parent node_.
-
-#### Type Parameters
-
-| Type Parameter |
-| ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `newNode` | `T` | The node to be inserted. |
-| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
-
-#### Returns
-
-`T`
-
-The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
-
-#### Inherited from
-
-[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
-
-***
-
-### removeChild()
-
-```ts
-removeChild(child: Node): Node | undefined;
-```
-
-Removes a child node from the DOM and returns the removed node.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
-
-#### Returns
-
-[`Node`](#classesnodemd) \| `undefined`
-
-The removed child node.
-
-#### Inherited from
-
-[`Node`](#classesnodemd).[`removeChild`](#removechild)
-
-***
-
-### toString()
-
-```ts
-toString(): string;
-```
-
-Returns a string representation of the node.
-
-#### Returns
-
-`string`
-
-A formatted XML source.
-
-#### Inherited from
-
-[`Node`](#classesnodemd).[`toString`](#tostring)
-
-
-<a name="classesdocumentmd"></a>
-
-# Document
-
-This class describes an XML document.
-
-## Extends
-
-- [`Node`](#classesnodemd)
-
-## Constructors
-
-### Constructor
-
-```ts
-new Document(): Document;
-```
-
-Constructs a new Document instance.
-
-#### Returns
-
-`Document`
-
-#### Overrides
-
-[`Node`](#classesnodemd).[`constructor`](#constructor)
-
-## Properties
-
-| Property | Type | Default value | Description | Inherited from |
-| ------ | ------ | ------ | ------ | ------ |
-| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
-| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
-| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
-| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
-| <a id="root"></a> `root` | [`Element`](#classeselementmd) \| `null` | `null` | - | - |
-
-## Accessors
-
-### children
-
-#### Get Signature
-
-```ts
-get children(): Element[];
-```
-
-A list containing all child Elements of the current Element.
-
-##### Returns
-
-[`Element`](#classeselementmd)[]
-
-***
 
 ### firstChild
 
@@ -682,7 +594,7 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild<T>(node: T): T;
+appendChild<T extends Node | DocumentFragment>(this: Node, node: T): T;
 ```
 
 Appends a child node into the current one.
@@ -691,7 +603,407 @@ Appends a child node into the current one.
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `this` | [`Node`](#classesnodemd) | - |
+| `node` | `T` | The new child node |
+
+#### Returns
+
+`T`
+
+The same node that was passed in.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`appendChild`](#appendchild)
+
+***
+
+### insertBefore()
+
+```ts
+insertBefore<T extends Node | DocumentFragment>(newNode: T, referenceNode: Node | null): T;
+```
+
+Inserts a node before a _reference node_ as a child of a specified _parent node_.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-t-1"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `newNode` | `T` | The node to be inserted. |
+| `referenceNode` | [`Node`](#classesnodemd) \| `null` | The node before which newNode is inserted. If this is null, then newNode is inserted at the end of node's child nodes. |
+
+#### Returns
+
+`T`
+
+The node or DocumentFragment that was passed in.
+
+#### Throws
+
+If newNode is this node or one of its ancestors.
+
+#### Throws
+
+If referenceNode is not a child of this node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### isDefaultNamespace()
+
+```ts
+isDefaultNamespace(namespaceURI: string | null): boolean;
+```
+
+Test if a namespace URI is the default namespace at this node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to test, or null for no namespace. |
+
+#### Returns
+
+`boolean`
+
+True if unprefixed elements here belong to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isDefaultNamespace`](#isdefaultnamespace)
+
+***
+
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isEqualNode`](#isequalnode)
+
+***
+
+### lookupNamespaceURI()
+
+```ts
+lookupNamespaceURI(prefix: string | null): string | null;
+```
+
+Find the namespace URI that a prefix is bound to. As in the DOM, elements
+resolve it from their own `xmlns` declarations and their ancestors', and
+other nodes ask an element: a document its root, an attribute its owner
+element, and anything else its parent element.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prefix` | `string` \| `null` | The prefix to look up, or null for the default namespace. |
+
+#### Returns
+
+`string` \| `null`
+
+The namespace URI, or null if the prefix is not bound.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupNamespaceURI`](#lookupnamespaceuri)
+
+***
+
+### lookupPrefix()
+
+```ts
+lookupPrefix(namespaceURI: string | null): string | null;
+```
+
+Find a prefix that is bound to a namespace URI. Nodes other than elements
+ask an element, as `lookupNamespaceURI` does.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to look up. |
+
+#### Returns
+
+`string` \| `null`
+
+The prefix, or null if no prefix is bound to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupPrefix`](#lookupprefix)
+
+***
+
+### removeChild()
+
+```ts
+removeChild(child: Node): Node | undefined;
+```
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `child` | [`Node`](#classesnodemd) | The child node to be removed. |
+
+#### Returns
+
+[`Node`](#classesnodemd) \| `undefined`
+
+The removed child node.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`removeChild`](#removechild)
+
+***
+
+### toString()
+
+```ts
+toString(): string;
+```
+
+Returns a string representation of the node.
+
+#### Returns
+
+`string`
+
+A formatted XML source.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`toString`](#tostring)
+
+
+<a name="classesdocumentmd"></a>
+
+# Document
+
+This class describes an XML document.
+
+## Extends
+
+- [`Node`](#classesnodemd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new Document(): Document;
+```
+
+Constructs a new Document instance.
+
+#### Returns
+
+`Document`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Type | Default value | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
+| <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
+| <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
+| <a id="parentnode"></a> `parentNode` | [`Node`](#classesnodemd) \| `null` | `null` | The node's parent node. | [`Node`](#classesnodemd).[`parentNode`](#parentnode) |
+
+## Accessors
+
+### children
+
+#### Get Signature
+
+```ts
+get children(): Element[];
+```
+
+A list containing all child Elements of the current Element.
+
+##### Returns
+
+[`Element`](#classeselementmd)[]
+
+***
+
+### firstChild
+
+#### Get Signature
+
+```ts
+get firstChild(): Node | null;
+```
+
+Returns the node's first child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`firstChild`](#firstchild)
+
+***
+
+### lastChild
+
+#### Get Signature
+
+```ts
+get lastChild(): Node | null;
+```
+
+Returns the node's last child in the tree, or null if the node has no children.
+
+##### Returns
+
+[`Node`](#classesnodemd) \| `null`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lastChild`](#lastchild)
+
+***
+
+### preserveSpace
+
+#### Get Signature
+
+```ts
+get preserveSpace(): boolean;
+```
+
+True if xml:space has been set to true for this node or any of its ancestors.
+
+##### Returns
+
+`boolean`
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`preserveSpace`](#preservespace)
+
+***
+
+### root
+
+#### Get Signature
+
+```ts
+get root(): Element | null;
+```
+
+The root element of the document, or null if it has none.
+Assigning an element replaces the current root and declares the
+document's namespaces on it. Assigning null removes the root.
+
+##### Returns
+
+[`Element`](#classeselementmd) \| `null`
+
+#### Set Signature
+
+```ts
+set root(element: Element | null): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `element` | [`Element`](#classeselementmd) \| `null` |
+
+##### Returns
+
+`void`
+
+***
+
+### textContent
+
+#### Get Signature
+
+```ts
+get textContent(): string;
+```
+
+The text content of this node (and its children).
+
+##### Returns
+
+`string`
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`textContent`](#textcontent)
+
+## Methods
+
+### appendChild()
+
+```ts
+appendChild<T extends Node | DocumentFragment>(node: T): T;
+```
+
+Appends a child node into the current one.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-t"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
@@ -730,26 +1042,9 @@ Attach a namespace to the document.
 
 #### Returns
 
-```ts
-(
-   name: string, 
-   attr?: XMLAttr | null, ...
-   children: (
-  | CreateChildArgument
-  | CreateChildArgument[])[]): Element;
-```
-
-##### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `name` | `string` |
-| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` |
-| ...`children?` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] |
-
-##### Returns
-
-[`Element`](#classeselementmd)
+(`name`: `string`, `attr?`: [`XMLAttr`](#type-aliasesxmlattrmd) \| `null`, ...`children`: (
+  \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)
+  \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[]) => [`Element`](#classeselementmd)
 
 ***
 
@@ -758,10 +1053,11 @@ Attach a namespace to the document.
 ```ts
 createElement(
    qualifiedName: string, 
-   attr: XMLAttr | null | undefined, ...
-   children: (
+   attr?: XMLAttr | null, 
+   ...children: (
   | CreateChildArgument
-  | CreateChildArgument[])[]): Element;
+  | CreateChildArgument[])[]
+): Element;
 ```
 
 Create a new element node.
@@ -771,14 +1067,18 @@ Create a new element node.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `qualifiedName` | `string` | The local tagName of the element. |
-| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` \| `undefined` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
-| ...`children` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
+| ...`children?` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
 
 #### Returns
 
 [`Element`](#classeselementmd)
 
 A new Element instance.
+
+#### Throws
+
+If attr is not an object, or looks like a child (an array or a node).
 
 ***
 
@@ -786,30 +1086,46 @@ A new Element instance.
 
 ```ts
 createElementNS(
-   namespaceURI: string, 
+   namespaceURI: string | null, 
    qualifiedName: string, 
-   attr: XMLAttr | null | undefined, ...
-   children: (
+   attr?: XMLAttr | null, 
+   ...children: (
   | CreateChildArgument
-  | CreateChildArgument[])[]): Element;
+  | CreateChildArgument[])[]
+): Element;
 ```
 
 Create a new element node associated with a given namespace.
+
+If the name has a prefix, it is used as given, and the caller is
+responsible for declaring it. Otherwise, the prefix comes from a namespace
+attached with `attachNS`, or from the declarations on the root element.
+With no namespace, the element has no prefix. To create an element in
+place, with any missing declarations added, use `Element.createChildNS`.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `namespaceURI` | `string` | The namespaceURI to associate with the element. |
-| `qualifiedName` | `string` | The local tagName of the element. |
-| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` \| `undefined` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
-| ...`children` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
+| `namespaceURI` | `string` \| `null` | The namespaceURI to associate with the element, or null or an empty string for no namespace. |
+| `qualifiedName` | `string` | The tagName of the element, with or without a prefix. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
+| ...`children?` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
 
 #### Returns
 
 [`Element`](#classeselementmd)
 
 A new Element instance.
+
+#### Throws
+
+If no prefix is known for the namespace, or the
+                         name breaks the rules for the xml and xmlns prefixes.
+
+#### Throws
+
+If attr is not an object, or looks like a child (an array or a node).
 
 ***
 
@@ -838,7 +1154,7 @@ The elements by tag name.
 ### insertBefore()
 
 ```ts
-insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+insertBefore<T extends Node | DocumentFragment>(newNode: T, referenceNode: Node | null): T;
 ```
 
 Inserts a node before a _reference node_ as a child of a specified _parent node_.
@@ -847,7 +1163,7 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t-1"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
@@ -860,11 +1176,131 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 `T`
 
-The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+The node or DocumentFragment that was passed in.
+
+#### Throws
+
+If newNode is this node or one of its ancestors.
+
+#### Throws
+
+If referenceNode is not a child of this node.
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### isDefaultNamespace()
+
+```ts
+isDefaultNamespace(namespaceURI: string | null): boolean;
+```
+
+Test if a namespace URI is the default namespace at this node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to test, or null for no namespace. |
+
+#### Returns
+
+`boolean`
+
+True if unprefixed elements here belong to the namespace.
 
 #### Inherited from
 
-[`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+[`Node`](#classesnodemd).[`isDefaultNamespace`](#isdefaultnamespace)
+
+***
+
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isEqualNode`](#isequalnode)
+
+***
+
+### lookupNamespaceURI()
+
+```ts
+lookupNamespaceURI(prefix: string | null): string | null;
+```
+
+Find the namespace URI that a prefix is bound to. As in the DOM, elements
+resolve it from their own `xmlns` declarations and their ancestors', and
+other nodes ask an element: a document its root, an attribute its owner
+element, and anything else its parent element.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prefix` | `string` \| `null` | The prefix to look up, or null for the default namespace. |
+
+#### Returns
+
+`string` \| `null`
+
+The namespace URI, or null if the prefix is not bound.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupNamespaceURI`](#lookupnamespaceuri)
+
+***
+
+### lookupPrefix()
+
+```ts
+lookupPrefix(namespaceURI: string | null): string | null;
+```
+
+Find a prefix that is bound to a namespace URI. Nodes other than elements
+ask an element, as `lookupNamespaceURI` does.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to look up. |
+
+#### Returns
+
+`string` \| `null`
+
+The prefix, or null if no prefix is bound to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupPrefix`](#lookupprefix)
 
 ***
 
@@ -880,7 +1316,7 @@ Print the document as a string.
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `pretty` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
+| `pretty?` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
 
 #### Returns
 
@@ -1025,7 +1461,7 @@ new DocumentFragment(): DocumentFragment;
 ### appendChild()
 
 ```ts
-appendChild<T>(node: T): T;
+appendChild<T extends Node | DocumentFragment>(node: T): T;
 ```
 
 Appends a child node into the document fragment.
@@ -1034,7 +1470,7 @@ Appends a child node into the document fragment.
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| `DocumentFragment` |
+| <a id="type-parameter-t"></a> `T` *extends* [`Node`](#classesnodemd) \| `DocumentFragment` |
 
 #### Parameters
 
@@ -1050,6 +1486,32 @@ The same node that was passed in.
 
 ***
 
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | [`Node`](#classesnodemd) \| `DocumentFragment` \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+***
+
 ### print()
 
 ```ts
@@ -1062,7 +1524,7 @@ Print the document as a string.
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `pretty` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
+| `pretty?` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
 
 #### Returns
 
@@ -1086,25 +1548,25 @@ A class describing an Element.
 ### Constructor
 
 ```ts
-new Element(
-   tagName: string, 
-   attr?: XMLAttr | null, 
-   closed?: boolean): Element;
+new Element(tagName: string, attr?: XMLAttr | null): Element;
 ```
 
 Constructs a new Element instance.
 
 #### Parameters
 
-| Parameter | Type | Default value | Description |
-| ------ | ------ | ------ | ------ |
-| `tagName` | `string` | `undefined` | The tag name of the node. |
-| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | `undefined` | A collection of attributes to assign. Values of null or undefined will be ignored. |
-| `closed?` | `boolean` | `false` | Was the element "self-closed" when read. |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `tagName` | `string` | The tag name of the node. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A collection of attributes to assign. Values of null or undefined will be ignored. |
 
 #### Returns
 
 `Element`
+
+#### Throws
+
+If attr is not an object, or looks like a child (an array or a node).
 
 #### Overrides
 
@@ -1114,9 +1576,7 @@ Constructs a new Element instance.
 
 | Property | Type | Default value | Description | Overrides | Inherited from |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="attributes"></a> `attributes` | [`NamedNodeMap`](#type-aliasesnamednodemapmd) | `undefined` | A list of attributes assigned to this element. | - | - |
 | <a id="childnodes"></a> `childNodes` | [`Node`](#classesnodemd)[] | `[]` | The node's immediate children. | - | [`Node`](#classesnodemd).[`childNodes`](#childnodes) |
-| <a id="closed"></a> `closed` | `boolean` | `undefined` | A state representing if the element was "self-closed" when read. | - | - |
 | <a id="localname"></a> `localName` | `string` | `undefined` | The name of the tag for the given element, excluding any namespace prefix. | - | - |
 | <a id="nodename"></a> `nodeName` | `string` | `'#node'` | A node type string identifier. | - | [`Node`](#classesnodemd).[`nodeName`](#nodename) |
 | <a id="nodetype"></a> `nodeType` | `number` | `0` | A numerical node type identifier. | - | [`Node`](#classesnodemd).[`nodeType`](#nodetype) |
@@ -1124,6 +1584,22 @@ Constructs a new Element instance.
 | <a id="prefix"></a> `prefix` | `string` \| `null` | `undefined` | The namespace prefix of the element, or null' if no prefix is specified. | - | - |
 
 ## Accessors
+
+### attributes
+
+#### Get Signature
+
+```ts
+get attributes(): NamedNodeMap;
+```
+
+A list of attributes assigned to this element.
+
+##### Returns
+
+[`NamedNodeMap`](#type-aliasesnamednodemapmd)
+
+***
 
 ### children
 
@@ -1187,7 +1663,7 @@ Returns the node's first child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
+[`CDataNode`](#classescdatanodemd).[`firstChild`](#firstchild)
 
 ***
 
@@ -1239,7 +1715,25 @@ Returns the node's last child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
+[`CDataNode`](#classescdatanodemd).[`lastChild`](#lastchild)
+
+***
+
+### namespaceURI
+
+#### Get Signature
+
+```ts
+get namespaceURI(): string | null;
+```
+
+The namespace URI of the element, or null if it has none. It is resolved
+from the element's prefix and the `xmlns` declarations on the element and
+its ancestors, so it changes if the element is moved.
+
+##### Returns
+
+`string` \| `null`
 
 ***
 
@@ -1323,7 +1817,7 @@ Strings are inserted as equivalent Text nodes.
 ### appendChild()
 
 ```ts
-appendChild<T>(node: T): T;
+appendChild<T extends Node | DocumentFragment>(this: Node, node: T): T;
 ```
 
 Appends a child node into the current one.
@@ -1332,12 +1826,13 @@ Appends a child node into the current one.
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
+| `this` | [`Node`](#classesnodemd) | - |
 | `node` | `T` | The new child node |
 
 #### Returns
@@ -1357,10 +1852,11 @@ The same node that was passed in.
 ```ts
 createChild(
    qualifiedName: string, 
-   attr?: XMLAttr | null, ...
-   children: (
+   attr?: XMLAttr | null, 
+   ...children: (
   | CreateChildArgument
-  | CreateChildArgument[])[]): Element;
+  | CreateChildArgument[])[]
+): Element;
 ```
 
 This method creates an element and immediately inserts it as a child of the element on which the
@@ -1381,6 +1877,67 @@ The method implicitly creates the new element in the same namespace as the paren
 `Element`
 
 A new Element instance.
+
+#### Throws
+
+If attr is not an object, or looks like a child (an array or a node).
+
+***
+
+### createChildNS()
+
+```ts
+createChildNS(
+   namespaceURI: string | null, 
+   qualifiedName: string, 
+   attr?: XMLAttr | null, 
+   ...children: (
+  | CreateChildArgument
+  | CreateChildArgument[])[]
+): Element;
+```
+
+Create an element in a namespace and insert it as the last child of this
+element. Unlike `createChild`, the new element doesn't take this element's
+prefix, and missing namespace declarations are added to it.
+
+- With no namespace, the new element is unprefixed. If a default
+  namespace is in scope, `xmlns=""` is added to it.
+- With a namespace and an unprefixed name, the default namespace or a
+  prefix in scope is used. If the namespace isn't declared, this throws.
+- With a namespace and a prefixed name, the name is used as given. If the
+  prefix isn't declared, `xmlns:prefix` is added to the new element. If
+  it's bound to another namespace, this throws.
+
+Namespace declarations in `attr` count as being in scope, but this throws
+if they contradict the namespace.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace of the new element, or null or an empty string for no namespace. |
+| `qualifiedName` | `string` | The tagName of the element, with or without a prefix. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the new element. If the value is null or undefined, the attribute will be omitted. |
+| ...`children?` | ( \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd) \| [`CreateChildArgument`](#type-aliasescreatechildargumentmd)[])[] | Nodes to insert as children. Strings will be converted to TextNodes and arrays will be flattened. |
+
+#### Returns
+
+`Element`
+
+A new Element instance.
+
+#### Throws
+
+If the namespace can't be used with the name here.
+
+#### Throws
+
+If the name is not a valid XML name.
+
+#### Throws
+
+If attr is not an object, or looks like a child (an array or a node).
 
 ***
 
@@ -1465,7 +2022,7 @@ hasAttributes(): boolean;
 ### insertBefore()
 
 ```ts
-insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+insertBefore<T extends Node | DocumentFragment>(newNode: T, referenceNode: Node | null): T;
 ```
 
 Inserts a node before a _reference node_ as a child of a specified _parent node_.
@@ -1474,7 +2031,7 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t-1"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
@@ -1487,11 +2044,130 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 `T`
 
-The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+The node or DocumentFragment that was passed in.
+
+#### Throws
+
+If newNode is this node or one of its ancestors.
+
+#### Throws
+
+If referenceNode is not a child of this node.
 
 #### Inherited from
 
 [`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### isDefaultNamespace()
+
+```ts
+isDefaultNamespace(namespaceURI: string | null): boolean;
+```
+
+Test if a namespace URI is the default namespace at this node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to test, or null for no namespace. |
+
+#### Returns
+
+`boolean`
+
+True if unprefixed elements here belong to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isDefaultNamespace`](#isdefaultnamespace)
+
+***
+
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isEqualNode`](#isequalnode)
+
+***
+
+### lookupNamespaceURI()
+
+```ts
+lookupNamespaceURI(prefix: string | null): string | null;
+```
+
+Find the namespace URI that a prefix is bound to, using the `xmlns`
+declarations on the element and its ancestors.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prefix` | `string` \| `null` | The prefix to look up, or null for the default namespace. |
+
+#### Returns
+
+`string` \| `null`
+
+The namespace URI, or null if the prefix is not bound.
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`lookupNamespaceURI`](#lookupnamespaceuri)
+
+***
+
+### lookupPrefix()
+
+```ts
+lookupPrefix(namespaceURI: string | null): string | null;
+```
+
+Find a prefix that is bound to a namespace URI, using the `xmlns`
+declarations on the element and its ancestors. A prefix that a nearer
+element binds to a different URI is skipped.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to look up. |
+
+#### Returns
+
+`string` \| `null`
+
+The prefix, or null if no prefix is bound to the namespace.
+
+#### Overrides
+
+[`Node`](#classesnodemd).[`lookupPrefix`](#lookupprefix)
 
 ***
 
@@ -1530,7 +2206,7 @@ Print the document as a string.
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `pretty` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
+| `pretty?` | `boolean` | `false` | Apply automatic linebreaks and indentation to the output. |
 
 #### Returns
 
@@ -1654,7 +2330,7 @@ Sets an attribute on the element.
 ### setAttrValues()
 
 ```ts
-setAttrValues(attr: XMLAttr | null): void;
+setAttrValues(attr?: XMLAttr | null): void;
 ```
 
 Assign multiple attributes at once to the current elemeent.
@@ -1663,11 +2339,15 @@ Assign multiple attributes at once to the current elemeent.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `attr` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the element. If the value is null or undefined, the attribute will be omitted. |
+| `attr?` | [`XMLAttr`](#type-aliasesxmlattrmd) \| `null` | A record of attributes to assign to the element. If the value is null or undefined, the attribute will be omitted. |
 
 #### Returns
 
 `void`
+
+#### Throws
+
+If attr is not an object, or looks like a child (an array or a node).
 
 ***
 
@@ -1735,6 +2415,281 @@ new HierarchyError(message: string): HierarchyError;
 #### Returns
 
 `HierarchyError`
+
+#### Overrides
+
+[`XMLError`](#classesxmlerrormd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | [`XMLError`](#classesxmlerrormd).[`cause`](#cause) |
+| <a id="message"></a> `message` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`message`](#message) |
+| <a id="name"></a> `name` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`name`](#name) |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`stack`](#stack) |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | [`XMLError`](#classesxmlerrormd).[`stackTraceLimit`](#stacktracelimit) |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`captureStackTrace`](#capturestacktrace)
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`prepareStackTrace`](#preparestacktrace)
+
+
+<a name="classesinuseattributeerrormd"></a>
+
+# InUseAttributeError
+
+Thrown when an attribute that belongs to one element is added to another.
+Remove it from its element first, or create a new attribute.
+
+## Extends
+
+- [`XMLError`](#classesxmlerrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new InUseAttributeError(message: string): InUseAttributeError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`InUseAttributeError`
+
+#### Overrides
+
+[`XMLError`](#classesxmlerrormd).[`constructor`](#constructor)
+
+## Properties
+
+| Property | Modifier | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="cause"></a> `cause?` | `public` | `unknown` | - | [`XMLError`](#classesxmlerrormd).[`cause`](#cause) |
+| <a id="message"></a> `message` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`message`](#message) |
+| <a id="name"></a> `name` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`name`](#name) |
+| <a id="stack"></a> `stack?` | `public` | `string` | - | [`XMLError`](#classesxmlerrormd).[`stack`](#stack) |
+| <a id="stacktracelimit"></a> `stackTraceLimit` | `static` | `number` | The `Error.stackTraceLimit` property specifies the number of stack frames collected by a stack trace (whether generated by `new Error().stack` or `Error.captureStackTrace(obj)`). The default value is `10` but may be set to any valid JavaScript number. Changes will affect any stack trace captured _after_ the value has been changed. If set to a non-number value, or set to a negative number, stack traces will not capture any frames. | [`XMLError`](#classesxmlerrormd).[`stackTraceLimit`](#stacktracelimit) |
+
+## Methods
+
+### captureStackTrace()
+
+```ts
+static captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+```
+
+Creates a `.stack` property on `targetObject`, which when accessed returns
+a string representing the location in the code at which
+`Error.captureStackTrace()` was called.
+
+```js
+const myObject = {};
+Error.captureStackTrace(myObject);
+myObject.stack;  // Similar to `new Error().stack`
+```
+
+The first line of the trace will be prefixed with
+`${myObject.name}: ${myObject.message}`.
+
+The optional `constructorOpt` argument accepts a function. If given, all frames
+above `constructorOpt`, including `constructorOpt`, will be omitted from the
+generated stack trace.
+
+The `constructorOpt` argument is useful for hiding implementation
+details of error generation from the user. For instance:
+
+```js
+function a() {
+  b();
+}
+
+function b() {
+  c();
+}
+
+function c() {
+  // Create an error without stack trace to avoid calculating the stack trace twice.
+  const { stackTraceLimit } = Error;
+  Error.stackTraceLimit = 0;
+  const error = new Error();
+  Error.stackTraceLimit = stackTraceLimit;
+
+  // Capture the stack trace above function b
+  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace
+  throw error;
+}
+
+a();
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `targetObject` | `object` |
+| `constructorOpt?` | `Function` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`captureStackTrace`](#capturestacktrace)
+
+***
+
+### prepareStackTrace()
+
+```ts
+static prepareStackTrace(err: Error, stackTraces: CallSite[]): any;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err` | `Error` |
+| `stackTraces` | `CallSite`[] |
+
+#### Returns
+
+`any`
+
+#### See
+
+https://v8.dev/docs/stack-trace-api#customizing-stack-traces
+
+#### Inherited from
+
+[`XMLError`](#classesxmlerrormd).[`prepareStackTrace`](#preparestacktrace)
+
+
+<a name="classesinvalidcharactererrormd"></a>
+
+# InvalidCharacterError
+
+Thrown when an element or attribute name is not a valid XML name.
+
+## Extends
+
+- [`XMLError`](#classesxmlerrormd)
+
+## Constructors
+
+### Constructor
+
+```ts
+new InvalidCharacterError(message: string): InvalidCharacterError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`InvalidCharacterError`
 
 #### Overrides
 
@@ -2088,7 +3043,7 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild<T>(node: T): T;
+appendChild<T extends Node | DocumentFragment>(this: Node, node: T): T;
 ```
 
 Appends a child node into the current one.
@@ -2097,12 +3052,13 @@ Appends a child node into the current one.
 
 | Type Parameter |
 | ------ |
-| `T` *extends* `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t"></a> `T` *extends* `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
+| `this` | `Node` | - |
 | `node` | `T` | The new child node |
 
 #### Returns
@@ -2116,7 +3072,7 @@ The same node that was passed in.
 ### insertBefore()
 
 ```ts
-insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+insertBefore<T extends Node | DocumentFragment>(newNode: T, referenceNode: Node | null): T;
 ```
 
 Inserts a node before a _reference node_ as a child of a specified _parent node_.
@@ -2125,7 +3081,7 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 | Type Parameter |
 | ------ |
-| `T` *extends* `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t-1"></a> `T` *extends* `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
@@ -2138,7 +3094,111 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 `T`
 
-The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+The node or DocumentFragment that was passed in.
+
+#### Throws
+
+If newNode is this node or one of its ancestors.
+
+#### Throws
+
+If referenceNode is not a child of this node.
+
+***
+
+### isDefaultNamespace()
+
+```ts
+isDefaultNamespace(namespaceURI: string | null): boolean;
+```
+
+Test if a namespace URI is the default namespace at this node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to test, or null for no namespace. |
+
+#### Returns
+
+`boolean`
+
+True if unprefixed elements here belong to the namespace.
+
+***
+
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | `Node` \| [`DocumentFragment`](#classesdocumentfragmentmd) \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+***
+
+### lookupNamespaceURI()
+
+```ts
+lookupNamespaceURI(prefix: string | null): string | null;
+```
+
+Find the namespace URI that a prefix is bound to. As in the DOM, elements
+resolve it from their own `xmlns` declarations and their ancestors', and
+other nodes ask an element: a document its root, an attribute its owner
+element, and anything else its parent element.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prefix` | `string` \| `null` | The prefix to look up, or null for the default namespace. |
+
+#### Returns
+
+`string` \| `null`
+
+The namespace URI, or null if the prefix is not bound.
+
+***
+
+### lookupPrefix()
+
+```ts
+lookupPrefix(namespaceURI: string | null): string | null;
+```
+
+Find a prefix that is bound to a namespace URI. Nodes other than elements
+ask an element, as `lookupNamespaceURI` does.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to look up. |
+
+#### Returns
+
+`string` \| `null`
+
+The prefix, or null if no prefix is bound to the namespace.
 
 ***
 
@@ -2518,7 +3578,7 @@ Returns the node's first child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Document`](#classesdocumentmd).[`firstChild`](#firstchild)
+[`Node`](#classesnodemd).[`firstChild`](#firstchild)
 
 ***
 
@@ -2538,7 +3598,7 @@ Returns the node's last child in the tree, or null if the node has no children.
 
 #### Inherited from
 
-[`Document`](#classesdocumentmd).[`lastChild`](#lastchild)
+[`Node`](#classesnodemd).[`lastChild`](#lastchild)
 
 ***
 
@@ -2615,7 +3675,7 @@ The text content of this node (and its children).
 ### appendChild()
 
 ```ts
-appendChild<T>(node: T): T;
+appendChild<T extends Node | DocumentFragment>(this: Node, node: T): T;
 ```
 
 Appends a child node into the current one.
@@ -2624,12 +3684,13 @@ Appends a child node into the current one.
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
+| `this` | [`Node`](#classesnodemd) | - |
 | `node` | `T` | The new child node |
 
 #### Returns
@@ -2647,7 +3708,7 @@ The same node that was passed in.
 ### insertBefore()
 
 ```ts
-insertBefore<T>(newNode: T, referenceNode: Node | null): T;
+insertBefore<T extends Node | DocumentFragment>(newNode: T, referenceNode: Node | null): T;
 ```
 
 Inserts a node before a _reference node_ as a child of a specified _parent node_.
@@ -2656,7 +3717,7 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 | Type Parameter |
 | ------ |
-| `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
+| <a id="type-parameter-t-1"></a> `T` *extends* [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) |
 
 #### Parameters
 
@@ -2669,11 +3730,131 @@ Inserts a node before a _reference node_ as a child of a specified _parent node_
 
 `T`
 
-The added child (unless newNode is a DocumentFragment, in which case the empty DocumentFragment is returned).
+The node or DocumentFragment that was passed in.
+
+#### Throws
+
+If newNode is this node or one of its ancestors.
+
+#### Throws
+
+If referenceNode is not a child of this node.
 
 #### Inherited from
 
 [`Node`](#classesnodemd).[`insertBefore`](#insertbefore)
+
+***
+
+### isDefaultNamespace()
+
+```ts
+isDefaultNamespace(namespaceURI: string | null): boolean;
+```
+
+Test if a namespace URI is the default namespace at this node.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to test, or null for no namespace. |
+
+#### Returns
+
+`boolean`
+
+True if unprefixed elements here belong to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isDefaultNamespace`](#isdefaultnamespace)
+
+***
+
+### isEqualNode()
+
+```ts
+isEqualNode(otherNode: Node | DocumentFragment | null): boolean;
+```
+
+Test if a node is equal to this one, as in the DOM. Nodes are equal if
+they are of the same type, have the same names, namespaces, and data,
+have the same attributes in any order, and have equal children in the
+same order. Parents and owner elements are not compared, so equal
+subtrees in different places, or different documents, are equal.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `otherNode` | [`Node`](#classesnodemd) \| [`DocumentFragment`](#classesdocumentfragmentmd) \| `null` | The node to compare with. |
+
+#### Returns
+
+`boolean`
+
+True if the nodes are equal.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`isEqualNode`](#isequalnode)
+
+***
+
+### lookupNamespaceURI()
+
+```ts
+lookupNamespaceURI(prefix: string | null): string | null;
+```
+
+Find the namespace URI that a prefix is bound to. As in the DOM, elements
+resolve it from their own `xmlns` declarations and their ancestors', and
+other nodes ask an element: a document its root, an attribute its owner
+element, and anything else its parent element.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `prefix` | `string` \| `null` | The prefix to look up, or null for the default namespace. |
+
+#### Returns
+
+`string` \| `null`
+
+The namespace URI, or null if the prefix is not bound.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupNamespaceURI`](#lookupnamespaceuri)
+
+***
+
+### lookupPrefix()
+
+```ts
+lookupPrefix(namespaceURI: string | null): string | null;
+```
+
+Find a prefix that is bound to a namespace URI. Nodes other than elements
+ask an element, as `lookupNamespaceURI` does.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `namespaceURI` | `string` \| `null` | The namespace URI to look up. |
+
+#### Returns
+
+`string` \| `null`
+
+The prefix, or null if no prefix is bound to the namespace.
+
+#### Inherited from
+
+[`Node`](#classesnodemd).[`lookupPrefix`](#lookupprefix)
 
 ***
 
@@ -2739,6 +3920,8 @@ will catch any of the library's specific error subclasses.
 - [`NamespaceError`](#classesnamespaceerrormd)
 - [`HierarchyError`](#classeshierarchyerrormd)
 - [`NotFoundError`](#classesnotfounderrormd)
+- [`InUseAttributeError`](#classesinuseattributeerrormd)
+- [`InvalidCharacterError`](#classesinvalidcharactererrormd)
 
 ## Constructors
 
@@ -2760,9 +3943,7 @@ new XMLError(message: string): XMLError;
 
 #### Overrides
 
-```ts
-Error.constructor
-```
+`Error.constructor`
 
 ## Properties
 
@@ -2839,9 +4020,7 @@ a();
 
 #### Inherited from
 
-```ts
-Error.captureStackTrace
-```
+`Error.captureStackTrace`
 
 ***
 
@@ -2868,9 +4047,7 @@ https://v8.dev/docs/stack-trace-api#customizing-stack-traces
 
 #### Inherited from
 
-```ts
-Error.prepareStackTrace
-```
+`Error.prepareStackTrace`
 
 
 <a name="functionsescapexmlmd"></a>
@@ -2878,16 +4055,21 @@ Error.prepareStackTrace
 # escapeXML()
 
 ```ts
-function escapeXML(s: string): string;
+function escapeXML(s: string, attribute?: boolean): string;
 ```
 
-Escape XML entities in a string.
+Escape XML entities in a string. Characters that XML 1.0 doesn't allow
+are written as `&#xFFFD;`, a reference to the replacement character.
+
+In attribute values, LF and CR are written as `&#10;` and `&#13;`, because
+parsers turn raw line breaks in attribute values into spaces.
 
 ## Parameters
 
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `s` | `string` | Unescaped string |
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `s` | `string` | `undefined` | Unescaped string |
+| `attribute?` | `boolean` | `false` | Escape the string for use as an attribute value |
 
 ## Returns
 
