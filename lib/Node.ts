@@ -4,6 +4,7 @@ import { DocumentFragment } from './DocumentFragment.ts';
 import { NotFoundError } from './errors.js';
 import { prettyPrint } from './prettyPrint.js';
 import { isElement } from './isElement.ts';
+import { isEqualNode } from './isEqualNode.ts';
 import type { Element } from './Element.ts';
 
 /**
@@ -109,6 +110,20 @@ export class Node {
       node.parentNode = null;
     }
     return node;
+  }
+
+  /**
+   * Test if a node is equal to this one, as in the DOM. Nodes are equal if
+   * they are of the same type, have the same names, namespaces, and data,
+   * have the same attributes in any order, and have equal children in the
+   * same order. Parents and owner elements are not compared, so equal
+   * subtrees in different places, or different documents, are equal.
+   *
+   * @param otherNode The node to compare with.
+   * @returns True if the nodes are equal.
+   */
+  isEqualNode (otherNode: Node | DocumentFragment | null): boolean {
+    return isEqualNode(this, otherNode);
   }
 
   /**

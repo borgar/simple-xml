@@ -1,5 +1,6 @@
 import { appendChild } from './appendChild.ts';
 import { DOCUMENT_FRAGMENT_NODE } from './constants.ts';
+import { isEqualNode } from './isEqualNode.ts';
 import type { Node } from './Node.ts';
 import { prettyPrint } from './prettyPrint.ts';
 import { simplePrint } from './simplePrint.ts';
@@ -22,6 +23,20 @@ export class DocumentFragment {
   appendChild<T extends Node | DocumentFragment> (node: T): T {
     appendChild(this, node);
     return node;
+  }
+
+  /**
+   * Test if a node is equal to this one, as in the DOM. Nodes are equal if
+   * they are of the same type, have the same names, namespaces, and data,
+   * have the same attributes in any order, and have equal children in the
+   * same order. Parents and owner elements are not compared, so equal
+   * subtrees in different places, or different documents, are equal.
+   *
+   * @param otherNode The node to compare with.
+   * @returns True if the nodes are equal.
+   */
+  isEqualNode (otherNode: Node | DocumentFragment | null): boolean {
+    return isEqualNode(this, otherNode);
   }
 
   /** @ignore */
