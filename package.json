@@ -33,6 +33,7 @@
   },
   "files": [
     "*.md",
+    "LICENSE",
     "dist"
   ],
   "repository": {
