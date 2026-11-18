@@ -1,5 +1,5 @@
 import { Node } from './Node.js';
-import { TEXT_NODE } from './constants.js';
+import { ELEMENT_NODE, TEXT_NODE } from './constants.js';
 
 /**
  * A class describing a TextNode.
@@ -33,9 +33,15 @@ export class TextNode extends Node {
   // overwrites super
   get textContent () {
     const s = this.data;
-    // pure whitespace nodes are ignored when xml:space="default"
-    if (!/[^\r\n\t ]/.test(s)) {
-      return this.preserveSpace ? s : '';
+    // Whitespace-only text between child elements is indentation, and is
+    // ignored unless xml:space="preserve". In an element without child
+    // elements it's content, such as a separator, and is kept.
+    if (!/[^\r\n\t ]/.test(s) && !this.preserveSpace) {
+      for (const sibling of this.parentNode?.childNodes ?? []) {
+        if (sibling.nodeType === ELEMENT_NODE) {
+          return '';
+        }
+      }
     }
     return s;
   }

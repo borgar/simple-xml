@@ -46,8 +46,8 @@ describe('parse-simple', () => {
     expect(parseXML('<a><b /></a>').toJS()).toEqual([ 'a', [ 'b' ] ]);
     expect(parseXML('<a><b/></a>').toJS()).toEqual([ 'a', [ 'b' ] ]);
     expect(parseXML('<a><b></b></a>').toJS()).toEqual([ 'a', [ 'b' ] ]);
-    expect(parseXML('<a><b> </b></a>').toJS()).toEqual([ 'a', [ 'b' ] ]);
-    expect(parseXML('<a> <b> </b> </a>').toJS()).toEqual([ 'a', [ 'b' ] ]);
+    expect(parseXML('<a><b> </b></a>').toJS()).toEqual([ 'a', [ 'b', ' ' ] ]);
+    expect(parseXML('<a> <b> </b> </a>').toJS()).toEqual([ 'a', [ 'b', ' ' ] ]);
   });
 
   it('attributes', () => {
@@ -126,8 +126,19 @@ describe('parse-simple', () => {
     expect(() => parseXML('<a>')).toThrow();
   });
 
+  it('whitespace-only text in elements without child elements', () => {
+    const doc = parseXML('<r><s>\n</s><s>; </s><s xml:space="preserve"> </s></r>');
+    expect(doc.root!.children.map(el => el.textContent)).toEqual([ '\n', '; ', ' ' ]);
+    expect(parseXML('<s>\n</s>').toJS()).toEqual([ 's', '\n' ]);
+    expect(parseXML('<s> </s>').toJS()).toEqual([ 's', ' ' ]);
+    // indentation between child elements is still dropped
+    expect(parseXML('<r>\n  <a>x</a>\n  <b/>\n</r>').toJS()).toEqual([ 'r', [ 'a', 'x' ], [ 'b' ] ]);
+    expect(parseXML('<r>\n  <a>x</a>\n</r>').root!.textContent).toBe('x');
+  });
+
   it('element and attribute names', () => {
     expect(parseXML('<a.b-c_d e.f="1"/>').toJS()).toEqual([ 'a.b-c_d', { 'e.f': '1' } ]);
+    // eslint-disable-next-line @stylistic/quote-props
     expect(parseXML('<\u00E9l\u00E9ment \u00E0="1"/>').toJS()).toEqual([ '\u00E9l\u00E9ment', { '\u00E0': '1' } ]);
     expect(parseXML('<p:a xml:lang="en"/>').toJS()).toEqual([ 'p:a', { 'xml:lang': 'en' } ]);
 

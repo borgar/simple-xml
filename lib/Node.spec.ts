@@ -319,13 +319,11 @@ describe('Node', () => {
     });
 
     it('concatenates text from multiple TextNode children', () => {
-      // A whitespace-only TextNode returns '' when preserveSpace is false,
-      // so 'foo' + '' + 'bar' = 'foobar'
       const parent = new Node();
       parent.appendChild(new TextNode('foo'));
       parent.appendChild(new TextNode(' '));
       parent.appendChild(new TextNode('bar'));
-      expect(parent.textContent).toBe('foobar');
+      expect(parent.textContent).toBe('foo bar');
     });
 
     it('concatenates text including spaces when preserveSpace is true', () => {
@@ -353,11 +351,20 @@ describe('Node', () => {
       expect(parent.textContent).toBe('before cdata after');
     });
 
-    it('returns empty string for whitespace-only TextNode children (no preserveSpace)', () => {
+    it('keeps whitespace-only text in an element without child elements', () => {
       const parent = new Element('div');
       parent.appendChild(new TextNode('   '));
-      // TextNode with only whitespace returns '' when preserveSpace is false
+      expect(parent.textContent).toBe('   ');
+      expect(new TextNode(' \n').textContent).toBe(' \n');
+    });
+
+    it('drops whitespace-only text between child elements (no preserveSpace)', () => {
+      const parent = new Element('div');
+      parent.appendChild(new TextNode('\n  '));
+      parent.appendChild(new Element('b'));
+      parent.appendChild(new TextNode('\n'));
       expect(parent.textContent).toBe('');
+      expect(parent.childNodes[0].textContent).toBe('');
     });
 
     it('preserves whitespace-only TextNode when preserveSpace is true', () => {
